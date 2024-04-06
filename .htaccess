@@ -1,0 +1,18 @@
+RewriteEngine On
+Header set Access-Control-Allow-Origin *
+DirectoryIndex index.php
+
+#redirect to https
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-l
+
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+<IfModule mod_headers.c>
+  <Directory "/final/">
+    Header set Access-Control-Allow-Origin "*"
+  </Directory>
+</IfModule>
