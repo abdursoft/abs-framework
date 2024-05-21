@@ -18,10 +18,10 @@ define("LANGUAGE",'bn');
 define('MOOD','web'); // web or api
 
 //Set base url
-define("BASE_URL",'http://localhost/github/PHP-ABS-FRAMEWORK/ABS-PHP-MVC/'); //set root directory/domain
+define("BASE_URL",'http://localhost/project/'); //set root directory/domain
 define("SITE_TITLE",'ABS MVC FRAMEWORK'); //site name or title
 define("FAV_ICON",BASE_URL."assets/images/premium.png"); //site name or title
-define('DEFAULT_KEYWORDS','crickbd cricket live score live cricket'); //Default keywords
+define('DEFAULT_KEYWORDS','abs mvc developed by abdursoft'); //Default keywords
 
 // Server TimeZone 
 define("DB_SERVER_TIMEZONE",'Asia/Dhaka'); //set your default timezone
@@ -120,4 +120,5 @@ define('FFMPEGPROBE','c:\ffmpeg\bin\ffprobe.exe');
 define('JWT_ALG','HS256');
 define('JWT_SECRET','ronyMe_2k23');
 define('JWT_INTERVAL',10);
-define('JWT_EXPAIR',15000);
+define('JWT_EXPIRE',1500);
+define('JWT_REF_EXPIRE',2000);

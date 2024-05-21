@@ -26,7 +26,7 @@ class Controller
     {
         $this->load = new Loader();
         $server = new Model();
-        $this->server = $server::$model;
+        $this->server = $server->model;
         Session::init();
     }
 

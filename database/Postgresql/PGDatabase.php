@@ -53,19 +53,16 @@ class PGDatabase extends Postgress
      */
     public function select(array|string|null $select=null){
         if(is_array($select)){
-            foreach($select as $key=>$val){
-                if(!empty($key) && !is_int($key)){
-                    $this->sql .= "`$key` AS `$val`, ";
-                }else{
-                    $this->sql .= " `$val`, ";
-                }
+            $sql = '';
+            for($i=0; $i < count($select);$i++){
+                $sql .= "`$select[$i]` ,";
             }
+            $this->sql = trim($sql,',');
         }elseif(is_string($select)){
-            $this->sql = $select;
+            $this->sql = "`$select` ";
         }else{
             $this->sql = ' * ';
         }
-        $this->sql = trim($this->sql,', ');
         return $this;
     }
 
@@ -80,7 +77,7 @@ class PGDatabase extends Postgress
         $this->query = "SELECT $this->sql FROM $this->table $this->where ORDER BY id ASC LIMIT 1";
         $stmt = $this->buildQuery();
         if ($stmt->rowCount() > 0) {
-            return (object)$stmt->fetchAll(PDO::FETCH_ASSOC);
+            return (object)$stmt->fetch(PDO::FETCH_ASSOC);
         } else {
             return false;
         }
@@ -95,7 +92,7 @@ class PGDatabase extends Postgress
         $this->query = "SELECT $this->sql FROM $this->table $this->where ORDER BY id DESC LIMIT 1";
         $stmt = $this->buildQuery();
         if ($stmt->rowCount() > 0) {
-            return (object)$stmt->fetchAll(PDO::FETCH_ASSOC);
+            return (object)$stmt->fetch(PDO::FETCH_ASSOC);
         } else {
             return false;
         }
@@ -128,10 +125,16 @@ class PGDatabase extends Postgress
             $this->where = " WHERE ";
             foreach($data as $key=>$val){
                 if(!empty($key) && !is_int($key)){
-                    if(strtolower($val) != '!null'){
-                        $this->where .= " $key = '$val' AND ";
-                    }else{
+                    if(strtolower($val) == '!null'){
                         $this->where .= " $key != ' ' AND ";
+                    }else{
+                        $pos = strpos($val,'!');
+                        if($pos === 0){
+                            $v = trim($val,'!');
+                            $this->where .= " $key != '$v' AND ";
+                        }else{
+                            $this->where .= " $key = '$val' AND "; 
+                        }
                     }
                 }
             }
@@ -153,10 +156,16 @@ class PGDatabase extends Postgress
             $this->where = " WHERE ";
             foreach($data as $key=>$val){
                 if(!empty($key) && !is_int($key)){
-                    if(strtolower($val) != '!null'){
-                        $this->where .= " $key = '$val' OR ";
+                    if(strtolower($val) == '!null'){
+                        $this->where .= " $key != ' ' OR ";
                     }else{
-                        $this->where .= " $key != '' OR ";
+                        $pos = strpos($val,'!');
+                        if($pos === 0){
+                            $v = trim($val,'!');
+                            $this->where .= " $key != '$v' OR ";
+                        }else{
+                            $this->where .= " $key = '$val' OR "; 
+                        }
                     }
                 }
             }
@@ -349,11 +358,17 @@ class PGDatabase extends Postgress
      */
     public function create(array $data=null){
         if(!empty($data)){
-            $keys = implode(',', array_keys($data));
-            $values = ":" . implode(',:', array_keys($data));
-            $this->query = "INSERT INTO $this->table($keys) VALUES($values)";
-            return $this->query;
-            return $this->buildQuery();
+            $input = NULL;
+            foreach ($data as $k => $v) {
+                $input .= "$k=:$k,";
+            }
+            $input = rtrim($input, ',');
+            $this->query = "INSERT INTO $this->table  SET $input";
+            $stmt = $this->db->prepare($this->query);
+            foreach ($data as $k => &$v) {
+                $stmt->bindValue(":$k", $v, PDO::PARAM_STR);
+            }
+            return $stmt->execute();
         }
     }
 

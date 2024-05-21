@@ -16,6 +16,7 @@ namespace System\Route;
 use System\Auth;
 use System\Loader;
 use System\Session;
+use System\Validation\Input;
 
 class Route extends Loader
 {
@@ -28,10 +29,12 @@ class Route extends Loader
     private $isAuth = false;
     private $parameter = [];
     private $param = [];
+    protected $input;
 
     public function __construct()
     {
         parent::__construct();
+        $this->input = new Input();
     }
 
     /**
@@ -70,9 +73,9 @@ class Route extends Loader
      * @param path url|path of the preffered page
      * @param handler name of the class and method
      */
-    public function delete(string $path, $handler): void
+    public function delete(string $path, $handler,array $parameter = null): void
     {
-        $this->addHandler(self::METHOD_DELETE, $path, $handler);
+        $this->addHandler(self::METHOD_DELETE, $path, $handler,$parameter);
     }
 
     /**
@@ -81,16 +84,18 @@ class Route extends Loader
      * @param routes  an array of all routes
      * will protect the routes with role
      */
-    public function middleware(string $role, array $routes): void // not completed yet
+    public function middleware(string $role, array $routes, string $sub_role=null): void // not completed yet
     {
         $this->middleware = $role;
         $requestUri = parse_url($_SERVER['REQUEST_URI']);
         $requestPath = $requestUri['path'] != '/' ? rtrim($requestUri['path'], '/') : $requestUri['path'];
         if (MOOD == 'web') {
-            if (Session::get($role)) {
+            if (Session::get($role) | $sub_role === Session::get($role)) {
                 if (!empty($routes)) {
                     foreach ($routes as $route) {
-                        if ($route[1] == $requestPath) {
+                        if(isset($route[3])){
+                            $this->addHandler($this->method_sanitizer($route['0']), $route[1], $route[2],$route[3]);
+                        }else{
                             $this->addHandler($this->method_sanitizer($route['0']), $route[1], $route[2]);
                         }
                     }
@@ -100,15 +105,20 @@ class Route extends Loader
             }
         } else {
             if(Auth::getHeader()){
-                if (!empty($routes)) {
-                    foreach ($routes as $route) {
-                        if ($route[1] == $requestPath) {
-                            print_r(Auth::getHeader());
-                            print_r("time:".time());
-                            $this->addHandler($this->method_sanitizer($route['0']), $route[1], $route[2]);
+                if(Auth::getHeader()->data->role === $this->middleware | Auth::getHeader()->data->role === $sub_role){
+                    if (!empty($routes)) {
+                        foreach ($routes as $route) {
+                            if(isset($route[3])){
+                                $this->addHandler($this->method_sanitizer($route['0']), $route[1], $route[2],$route[3]);
+                                
+                            }else{
+                                $this->addHandler($this->method_sanitizer($route['0']), $route[1], $route[2]);
+                            }
                         }
                     }
-                }
+                }else{
+                    $this->isAuth = true;
+                }  
             }else{
                 $this->isAuth = true;
             }            
@@ -197,14 +207,18 @@ class Route extends Loader
         if (!empty($this->handlers)) {
             foreach ($this->handlers as $handler) {
                 if (!empty($handler['parameter'])) {
-                    $path = explode($handler['path'], $requestPath);
-                    if (isset($path[1])) {
-                        $param_get = trim($path[1], '/');
-                        $param_explode = explode('/', $param_get);
-                        for ($p = 0; $p < count($handler['parameter']); $p++) {
-                            $_GET[$handler['parameter'][$p]] = $param_explode[$p] ?? '';
+                    if($method === $handler['method']){
+                        $path = explode($handler['path'], $requestPath);
+                        if (isset($path[1])) {
+                            $param_get = trim($path[1], '/');
+                            $param_explode = explode('/', $param_get);
+                            for ($p = 0; $p < count($handler['parameter']); $p++) {
+                                $_GET[$handler['parameter'][$p]] = $param_explode[$p] ?? '';
+                            }
+                            $callback = $handler['handler'];
+                        }else{
+                            $this->isAuth = true;
                         }
-                        $callback = $handler['handler'];
                     }
                 } else {
                     if ($handler['path'] === $requestPath && $method === $handler['method']) {
@@ -231,7 +245,16 @@ class Route extends Loader
 
         if (!$callback) {
             if ($this->isAuth) {
-                $this->unAuthorized();
+                if(MOOD === 'api'){
+                    http_response_code(401);
+                    header('Content-type:application/json');
+                    echo json_encode([
+                        "status" => 0,
+                        "message" => "Unauthorized Access"
+                    ]);
+                }else{
+                    $this->unAuthorized();
+                }
             } else {
                 $this->notFound();
             }
@@ -243,10 +266,12 @@ class Route extends Loader
         }
 
         if (!empty($this->param)) {
+            Session::set('input_params',array_merge($_GET, $_POST, $this->param));
             call_user_func_array($callback, [
                 array_merge($_GET, $_POST, $this->param)
             ]);
         } else {
+            Session::set("input_params",array_merge($_GET, $_POST));
             call_user_func_array($callback, [
                 array_merge($_GET, $_POST)
             ]);

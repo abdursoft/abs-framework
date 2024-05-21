@@ -1247,8 +1247,12 @@ Otherwise abdursoft.com will take action against you by the law of copyright.Sta
             cursor: 'pointer',
             'z-index': 999999,
             'font-size': '50px',
-            left: '10px',
-            bottom: '10px'
+            'text-align': 'center',
+            'align-items':'center',
+            'justify-content': 'center',
+            left: '50%',
+            top: '50%',
+            transform: "translate(-50%,-50%)",
         });
         def.fn.html(adsHandler, def.icons.playBtn);
         def.fn.append(player, adsHandler);
@@ -3453,7 +3457,7 @@ Otherwise abdursoft.com will take action against you by the law of copyright.Sta
                     isVast = true;
                     adsLogic();
                     controls.style.display = 'none';
-                    adsHandler.style.display = 'block';
+                    adsHandler.style.display = 'flex';
                     function loadAds() {
                         (function loadAdsScript() {
                             const tag = document.createElement('script');
@@ -3680,7 +3684,7 @@ Otherwise abdursoft.com will take action against you by the law of copyright.Sta
                                     adsContentVideo.play();
                                 } catch (error) {
                                     console.log(error)
-                                    adsHandler.style.display = 'block';
+                                    adsHandler.style.display = 'flex';
                                     adsHandler.addEventListener('click', () => {
                                         adsHandler.style.display = 'none';
                                         adsContentVideo.play();
@@ -3712,19 +3716,27 @@ Otherwise abdursoft.com will take action against you by the law of copyright.Sta
                     if (document.readyState !== "loading") {
                         console.info(`document.readyState ==>`, document.readyState);
                         let adsExt = extChecker(absPlayer.vast);
-                        if (adsExt != null && adsExt.indexOf('xml') != -1) {
+                        if (!adsExt | adsExt != null) {
                             xmlVast();
                         } else {
-                            loadAds();
+                            if(adsExt.indexOf('xml') > -1){
+                                xmlVast();
+                            }else{
+                                loadAds();
+                            }
                         }
                     } else {
                         document.addEventListener("DOMContentLoaded", function () {
-                            console.info(`DOMContentLoaded ==>`, document.readyState);
-                            let adsExt = extChecker(absPlayer.vast);
-                            if (adsExt != null && adsExt.indexOf('xml') != -1) {
+                            console.info(`document.readyState ==>`, document.readyState);
+                            let adsExt = extChecker(premium.vast);
+                            if (!adsExt | adsExt != null) {
                                 xmlVast();
                             } else {
-                                loadAds();
+                                if(adsExt.indexOf('xml') > -1){
+                                    xmlVast();
+                                }else{
+                                    loadAds();
+                                }
                             }
                         });
                     }
@@ -4174,9 +4186,9 @@ Otherwise abdursoft.com will take action against you by the law of copyright.Sta
                 if (hours === 0) {
                     return `${minutes}:${leadingZeroFormatter.format(seconds)}`;
                 } else {
-                    return `${hours}:${leadingZeroFormatter.format(
+                    return `${hours ?? '0'}:${leadingZeroFormatter.format(
                         minutes
-                    )}:${leadingZeroFormatter.format(seconds)}`;
+                    ) ?? '00'}:${leadingZeroFormatter.format(seconds) ?? '00'}`;
                 }
             }else{
                 return '0:00';

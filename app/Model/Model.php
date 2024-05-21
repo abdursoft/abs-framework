@@ -18,10 +18,10 @@ use DB\DBServer;
 
 class Model
 {
-    public static $model;
+    public $model;
     public function __construct()
     {
         $database = new DBServer();
-        self::$model = $database::$server;
+        $this->model = $database::$server;
     }
 }

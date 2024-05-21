@@ -24,7 +24,10 @@ class Session
   public static function init()
   {
     if (!isset($_SESSION)) {
-      session_start();
+      session_name('absmvc');
+      session_start([
+        'cookie_life_time' => 3600
+      ]);
     }
   }
 

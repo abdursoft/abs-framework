@@ -14,10 +14,12 @@
 namespace System\Validation;
 
 use App\Model\Model;
+use System\Session;
 
 class Input extends Model {
 
     private $input,$key, $message, $error = [], $warning, $response, $code;
+    public $data;
     public function __construct() {
         parent::__construct();
 
@@ -29,12 +31,23 @@ class Input extends Model {
      * will return the input value if the key is valid
      */
     public function getValue( $input ) {
-        if ( isset( $_GET[$input] ) ) {
-            $this->input = $_GET[$input];
-        } elseif ( isset( $_POST[$input] ) ) {
-            $this->input = $_POST[$input];
-        } else {
+        if ( isset( $_GET[$input] )) {
+            $this->input = trim($_GET[$input]);
+        } elseif ( isset( $_POST[$input] )) {
+            $this->input = trim($_POST[$input]);
+        } elseif(isset( $_FILES[$input] )) {
             $this->input = $_FILES[$input];
+        }else{
+            $this->input = $this->getInput($input);
+        }
+    }
+
+
+    public function getInput($input){
+        if(!empty(Session::get('input_params')) && !empty(Session::get('input_params')[$input])){
+            return trim(Session::get('input_params')[$input]);
+        }else{
+            return false;
         }
     }
 
@@ -43,11 +56,11 @@ class Input extends Model {
      * @param input name of the input|file field name
      */
     public function field( $input ) {
-        if ( isset( $_GET[$input] ) | isset( $_POST[$input] ) | isset( $_FILES[$input] ) ) {
+        if ( isset( $_GET[$input] ) | isset( $_POST[$input] ) | isset( $_FILES[$input] ) | $this->getInput($input) != false) {
             $this->getValue( $input );
             $this->key = $input;
         } else {
-            $this->error[$input] = "$this->key input field is required";
+            $this->error[$input] = "$input input field is required";
         }
         return $this;
     }
@@ -70,7 +83,7 @@ class Input extends Model {
     public function min( int $num ) {
         $length = strlen( $this->input );
         if ( $length < $num ) {
-            $this->error[$this->key] = "$this->key input field more than or equal $num characters";
+            $this->error[$this->key] = "$this->key should be more than or equal $num characters";
         }
         return $this;
     }
@@ -82,7 +95,7 @@ class Input extends Model {
     public function max( int $num ) {
         $length = strlen( $this->input );
         if ( $length > $num ) {
-            $this->error[$this->key] = "$this->key input field less than or equal $num characters";
+            $this->error[$this->key] = "$this->key should be less than or equal $num characters";
         }
         return $this;
     }
@@ -143,7 +156,7 @@ class Input extends Model {
      * will generate an error message if the data is not valid
      */
     public function required() {
-        if ( !isset( $_POST[$this->key] ) && !isset( $_GET[$this->key] ) && !isset($_FILES[$this->key]) ) {
+        if ( !isset( $_POST[$this->key] ) && !isset( $_GET[$this->key] ) && !isset($_FILES[$this->key]) && !$this->getInput($this->key) ) {
             $this->error[$this->key] = "$this->key input field is required";
         }
         return $this;
@@ -221,13 +234,30 @@ class Input extends Model {
         return $this;
     }
 
+
+    /**
+     * checking the key is exist or not
+     * @param table table|model|collection name of the database
+     * @param key name|key of the table|model|collection
+     * will generate an error message if the data is not valid
+     */
+    public function exist( $table, $key ) {
+        $single = $this->model->table( $table )->select()->where( [
+            $key => $this->input,
+        ] )->last();
+        if ( !$single ) {
+            $this->error[$this->key] = "This $this->key is not exist";
+        }
+        return $this;
+    }
+
     /**
      * password validation
      * @param null 
      * checking the password for mix string with characters and numbers
      */
     public function password() {
-        $password     = $_POST[$this->input];
+        $password     = $this->input;
         $uppercase    = preg_match( '@[A-Z]@', $password );
         $lowercase    = preg_match( '@[a-z]@', $password );
         $number       = preg_match( '@[0-9]@', $password );
@@ -255,10 +285,7 @@ class Input extends Model {
      */
     public function validation() {
         if ( empty( $this->error ) ) {
-            $data = is_string($this->input) ? trim( $this->input ) : '';
-            $data = stripslashes( $data );
-            $data = htmlspecialchars( $data );
-            return $data;
+            return true;
         } else {
             return $this->error;
         }

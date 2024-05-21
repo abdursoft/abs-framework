@@ -23,12 +23,8 @@ $route->get('',App::class."::index");
 $route->post('/action',App::class."::action");
 
 $route->get('/register', User::class."::register",[]);
-$route->get('/player', User::class."::player");
 $route->post('/login', User::class."::login");
 
-$route->get('/post', App::class."::test",['name','age']);
-$route->get('/payment/status', App::class."::status");
-$route->get('/payment/cancel', App::class."::cancel");
 
 
 $route->middleware('jwt_token',[

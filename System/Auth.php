@@ -25,19 +25,21 @@ class Auth
     public static $time;
 
     /**
-     * generating the jwt token
+     * Generating the jwt token
      * @param data data for generating and encryption token
      * @param audience set a role for the generated token
-     * will return a jwt token
+     * @param expire token expire date|time in second
+     * @param interval token interval data|time in second
+     * Will return a jwt token
      */
-    public static function jwtAUTH($data, $audience)
+    public static function jwtAUTH($data, $audience,$expire=null,$interval=null)
     {
         self::$time = time();
         $payload = [
             "iss"   => $_SERVER['HTTP_HOST'],
             'iat'   => self::$time,
-            'nbf'   => self::$time + JWT_INTERVAL,
-            'exp'   => self::$time + JWT_EXPAIR,
+            'nbf'   => self::$time + ($interval != null ? $interval : JWT_INTERVAL),
+            'exp'   => self::$time + ($expire != null ? $expire : JWT_EXPIRE),
             'aud'   => $audience,
             'data'  => $data
         ];
@@ -49,7 +51,7 @@ class Auth
 
 
     /**
-     * decode jwt token
+     * Decode jwt token
      * @param token need a jwt token to extract the data
      * will return a data array is pass a valid  token 
      */
@@ -61,9 +63,9 @@ class Auth
     }
 
     /**
-     * generating jwt decoded data
+     * Generating jwt decoded data
      * @param token need a jwt token
-     * will return a data array if token was valid
+     * Will return a data array if token was valid
      */
     public static function found($token)
     {
@@ -75,15 +77,39 @@ class Auth
     }
 
     /**
-     * geting headers from api/server calls
+     * Getting headers from api/server calls
      * @param null
-     * checking authorization header
+     * Checking authorization header
      */
     public static function getHeader()
     {
         $header = getallheaders();
         if (isset($header['Authorization'])) {
             $token = self::found(self::tokenSanitizer($header['Authorization']));
+            if (is_array($token) || is_object($token)) {
+                if($token->exp < time()){
+                    self::refreshToken();
+                }else{
+                    return $token;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Getting headers from api/server calls
+     * @param null
+     * checking authorization header
+     */
+    public static function getRefHeader()
+    {
+        $header = getallheaders();
+        if (isset($header['RefAuthorization'])) {
+            $token = self::found(self::tokenSanitizer($header['RefAuthorization']));
             if (is_array($token) || is_object($token)) {
                 if($token->exp < time()){
                     return false;
@@ -109,9 +135,9 @@ class Auth
     }
 
     /**
-     * verifing jwt token
+     * Verifying jwt token
      * @param token jwt token need to verify
-     * will return the token is valid
+     * Will return the token is valid
      */
     public static function verifyToken($token)
     {
@@ -125,10 +151,10 @@ class Auth
 
 
     /**
-     * generating json response
+     * Generating json response
      * @param data need a data of array
      * @param code for api/server response status
-     * will return a json object
+     * Will return a json object
      */
     public static function response(array $data, $code)
     {
@@ -140,38 +166,33 @@ class Auth
 
 
     /**
-     * refresh jwt token
+     * Refresh jwt token
      * @param token need a valid token to refresh
-     * will return a new token with existing data
+     * Will return a new token with existing data
      */
-    public static function refreshToken($token)
+    public static function refreshToken()
     {
         $header = getallheaders();
-        if ($header['Authorization'] != '') {
-            try {
-                $decoded = JWT::decode(self::tokenSanitizer($token), new Key(JWT_SECRET, JWT_ALG));
-            } catch (\Firebase\JWT\ExpiredException $e) {
+        if ($header['Authorization'] != '' && $header['RefAuthorization'] != '') {
+            $token = self::tokenSanitizer($header['RefAuthorization']);
+            if(self::getRefHeader()){
                 JWT::$leeway = 720;
                 $decoded = (array) JWT::decode(self::tokenSanitizer($token), new Key(JWT_SECRET, JWT_ALG));
                 $decoded['iat'] = time();
-                $decoded['exp'] = time() + JWT_EXPAIR;
-                return JWT::encode($decoded,JWT_SECRET,JWT_ALG);
-            } catch (\Exception $e) {
-                echo self::response([
-                    'status' => 0,
-                    'message' => $e->getMessage(),
-                ], 500);
+                $decoded['exp'] = time() + JWT_REF_EXPIRE;
+                $token = JWT::encode($decoded,JWT_SECRET,JWT_ALG);
+                return $token;
+            }else{
+                return false;
             }
         }else{
-            echo self::response([
-                'status' => 0,
-                'message' => "Unauthorized Token or Not Found",
-            ], 500);
+            return false;
         }
     }
 
+
     /**
-     * checking the authentication
+     * Checking the authentication
      * @param audience  role name for jwt token
      * @param path path for redirect the user
      * @param action for the super user
@@ -179,8 +200,8 @@ class Auth
     public static function authentication($audience,$path,$action='admin')
     {
         if (isset($_COOKIE[$audience])) {
-            $coockie = $_COOKIE[$audience];
-            $data = Auth::verifyToken($coockie);
+            $cookie = $_COOKIE[$audience];
+            $data = Auth::verifyToken($cookie);
             Session::set($action, true);
             if (!$data || empty($data)) {
                 Session::set($action, false);
@@ -191,6 +212,43 @@ class Auth
         } else {
             Session::set($action, false);
             header('Location: '.$path);
+        }
+    }
+
+    /**
+     * Sanitize auth data
+     * @param data set of the array or object data
+     * @param keys set of the keys want to remove
+     */
+    public static function authSanitize(array|object $data,array $keys){
+        if(is_array($data) && is_array($keys)){
+            for($i=0; $i < count($keys); $i++){
+                if(key_exists($keys[$i],$data)){
+                    unset($data[$keys[$i]]);
+                }
+            }
+        }elseif(is_object($data)){
+            $data = (array) $data;
+            for($i=0; $i < count($keys); $i++){
+                if(key_exists($keys[$i],$data)){
+                    unset($data[$keys[$i]]);
+                }
+            }
+        }
+        return $data;
+    }
+
+
+    /**
+     * Get Auth data from JWT token
+     * Will return the auth data
+     */
+    public static function getData(){
+        $data = self::getHeader();
+        if($data){
+            return $data->data;
+        }else{
+            return false;
         }
     }
 }
