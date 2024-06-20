@@ -1,1 +1,0 @@
-<h3>Unauthorized page</h3>

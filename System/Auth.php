@@ -1,14 +1,16 @@
 <?php
 /**
- * ABS MVC Framework
+ * ABS PHP Framework
  *
  * @created      2023
- * @version      1.0.1
+ * @updated      2024-06-20
+ * @version      1.0.5
  * @author       abdursoft <support@abdursoft.com>
+ * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
  * @license      MIT
  *
- * @noinspection PhpComposerExtensionStubsInspection
+ * @Written by Abdur Rahim
 */
 
 
@@ -212,6 +214,26 @@ class Auth
         } else {
             Session::set($action, false);
             header('Location: '.$path);
+        }
+    }
+
+
+    
+    /**
+     * Checking auth cookie
+     * @param name of the cookie
+     */
+    public static function authCookie(string $name){
+        if(isset($_COOKIE[$name])){
+            $cookie = $_COOKIE[$name];
+            $data = self::verifyToken($cookie);
+            if (!$data || empty($data)) {
+                return false;
+            } else {
+                return $data->data;
+            }
+        }else{
+            return false;
         }
     }
 

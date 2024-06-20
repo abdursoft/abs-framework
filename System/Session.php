@@ -1,14 +1,16 @@
 <?php
 /**
- * ABS MVC Framework
+ * ABS PHP Framework
  *
  * @created      2023
- * @version      1.0.1
+ * @updated      2024-06-20
+ * @version      1.0.5
  * @author       abdursoft <support@abdursoft.com>
+ * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
  * @license      MIT
  *
- * @noinspection PhpComposerExtensionStubsInspection
+ * @Written by Abdur Rahim
 */
 
 
@@ -24,10 +26,7 @@ class Session
   public static function init()
   {
     if (!isset($_SESSION)) {
-      session_name('absmvc');
-      session_start([
-        'cookie_life_time' => 3600
-      ]);
+      session_start();
     }
   }
 

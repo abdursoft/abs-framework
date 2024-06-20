@@ -1,15 +1,18 @@
 <?php
 /**
- * ABS MVC Framework
+ * ABS PHP Framework
  *
  * @created      2023
- * @version      1.0.1
+ * @updated      2024-06-20
+ * @version      1.0.5
  * @author       abdursoft <support@abdursoft.com>
+ * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
  * @license      MIT
  *
- * @noinspection PhpComposerExtensionStubsInspection
+ * @Written by Abdur Rahim
 */
+
 
 namespace Core\Payments;
 
@@ -20,8 +23,16 @@ class Stripe {
 
     public function __construct()
     {
-        $this->pay = new \Stripe\StripeClient('sk_test_51MpHapCDOCRrLQgKvEtc0bmTZny4D3wT8oXUREVJ7DQ1cG7WPmHIXmobs3DISss2lrDKdeRJKaxqlifRvzEQ6KED00I1F1vxbk');
-        $this->stripe = \Stripe\Stripe::setApiKey('sk_test_51MpHapCDOCRrLQgKvEtc0bmTZny4D3wT8oXUREVJ7DQ1cG7WPmHIXmobs3DISss2lrDKdeRJKaxqlifRvzEQ6KED00I1F1vxbk');
+        $this->pay = new \Stripe\StripeClient($this->getSecret());
+        $this->stripe = \Stripe\Stripe::setApiKey($this->getSecret());
+    }
+
+    private function getKey(){
+        return STRIPE_PUBLIC_KEY;
+    }
+
+    private function getSecret(){
+        return STRIPE_SECRET_KEY;
     }
 
 
@@ -88,14 +99,14 @@ class Stripe {
         }
     }
 
-    public function paymentRetreive(string $paymentID){
+    public function paymentRetrieve(string $paymentID){
         return $this->pay->checkout->sessions->retrieve(
             $paymentID,
             []
           );
     }
 
-    public function paymentRetreiveAll(int $limit){
+    public function paymentRetrieveAll(int $limit){
         return $this->pay->checkout->sessions->all(['limit' => $limit]);
     }
 
@@ -110,12 +121,12 @@ class Stripe {
           );
     }
 
-    public function refundRetrive(string $id){
+    public function refundRetrieve(string $id){
         return $this->pay->refunds->retrieve($id, []);
     }
 
 
-    public function refundRetriveAll(int $limit){
+    public function refundRetrieveAll(int $limit){
         return $this->pay->refunds->all(['limit' => $limit]);
     }
 

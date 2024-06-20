@@ -1,15 +1,18 @@
 <?php
 /**
- * ABS MVC Framework
+ * ABS PHP Framework
  *
  * @created      2023
- * @version      1.0.1
+ * @updated      2024-06-20
+ * @version      1.0.5
  * @author       abdursoft <support@abdursoft.com>
+ * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
  * @license      MIT
  *
- * @noinspection PhpComposerExtensionStubsInspection
+ * @Written by Abdur Rahim
 */
+
 
 namespace App\Controller;
 
@@ -31,13 +34,11 @@ class App extends Controller {
     public function __construct() {
         parent::__construct();
     }
-    public function index() {
+    public function index($param) {
         $this->load->page_title = "Input validation";
         $this->load->role = '';
         $this->load->flashMessage('white','salmon','red','Welcome to abs framework');
-        $this->load->view('form');
-
-        echo "<a href='/register'>register</a>";
+        $this->load->view('form',$param);
 
         $user = Students::model()->select()->where([
             "token" => '!null'

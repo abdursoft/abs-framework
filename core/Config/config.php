@@ -1,15 +1,18 @@
 <?php 
 /**
- * ABS MVC Framework
+ * ABS PHP Framework
  *
  * @created      2023
- * @version      1.0.1
+ * @updated      2024-06-20
+ * @version      1.0.5
  * @author       abdursoft <support@abdursoft.com>
+ * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
  * @license      MIT
  *
- * @noinspection PhpComposerExtensionStubsInspection
+ * @Written by Abdur Rahim
 */
+
 
 //  localization 
 define("LANGUAGE",'bn');
@@ -18,7 +21,7 @@ define("LANGUAGE",'bn');
 define('MOOD','web'); // web or api
 
 //Set base url
-define("BASE_URL",'http://localhost/project/'); //set root directory/domain
+define("BASE_URL",'http://localhost/mvc/'); //set root directory/domain
 define("SITE_TITLE",'ABS MVC FRAMEWORK'); //site name or title
 define("FAV_ICON",BASE_URL."assets/images/premium.png"); //site name or title
 define('DEFAULT_KEYWORDS','abs mvc developed by abdursoft'); //Default keywords
@@ -60,11 +63,11 @@ define("MAIL_HOST",'abs framework'); //Server Or gmail SMTP HOST
 define("MAIL_PORT",587); //Server SMTP Port
 define("MAIL_USERNAME",'noreply@abdursoft.com'); //User Mail Name
 define("MAIL_SUPPORT",'support@abdursoft.com'); //Contact Mail Name
-define("MAIL_PASSWORD",'ja#L~^'); //Mail Password
+define("MAIL_PASSWORD",'ja#^'); //Mail Password
 define("MAIL_WEBSITE",'abdursoft.com'); //Website Name
 define("MAIL_TEAM","abdursoft"); //Support Team Name
-define("MAIL_CONTACT","+8801892311511"); //Contact Phone Number
-define("MAIL_OWNER_ADSRESS","Mithapukur, Rangpur,BANGLADESH"); //Office Address
+define("MAIL_CONTACT","+88018xxxxxx11"); //Contact Phone Number
+define("MAIL_OWNER_ADSRESS","Rangpur,BANGLADESH"); //Office Address
 
 // payment server 
 define("PAYMENT_SERVER","stripe"); //stripe,paypal,sslcommerze,amarpay,razorpay,bkash,nagad
@@ -81,6 +84,10 @@ define("BKASH_SANDBOX",true); //True for Sandbox and false For Production
 define('PAYPAL_API_CLIENT_ID', '');  
 define('PAYPAL_API_SECRET', ''); 
 define('PAYPAL_SANDBOX', true); //set false for production 
+
+// Stripe secret and credentials 
+define('STRIPE_SECRET_KEY', '');  
+define('STRIPE_PUBLIC_KEY', '');  
 
 // AWS Bucket Credentials 
 define('AWS_KEY', '');
@@ -102,7 +109,7 @@ define('CLOUD_IMAGE_BUCKET','');
 define('CLOUD_VIDEO_BUCKET','');
 define('CLOUD_TOKEN','');
 define('CLOUD_ACCESS_KEY','');
-define('CLOUDE_SECRET_KEY','');
+define('CLOUD_SECRET_KEY','');
 define('CLOUD_ENDPOINT','');
 define('CLOUD_BUCKET_HOST','');
 define('CLOUD_TEMP_URL','');
