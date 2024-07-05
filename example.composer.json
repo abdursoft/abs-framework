@@ -1,0 +1,35 @@
+{
+    "name": "abs-framework/php",
+    "description": "It's a custom php mvc frame work developed by abdursoft. It's very easy to use and customizable.Now it's supported many features as like as laravel and blade template",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Abdur Rahim",
+            "email": "support@abdursoft.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "ABS\\Framework\\App\\" : "app/",
+            "ABS\\Framework\\Core\\" : "core/",
+            "ABS\\Framework\\System\\" : "System/",
+            "ABS\\Framework\\DB\\" : "database/",
+            "ABS\\Framework\\PLUGIN\\" : "plugins/"
+        }
+    },
+    "minimum-stability": "dev",
+    "require": {
+        "phpmailer/phpmailer": "^6.9.1",
+        "james-heinrich/getid3": "2.0.x-dev",
+        "mongodb/mongodb": "v1.12.x-dev",
+        "opencoconut/coconut": "dev-master",
+        "aws/aws-sdk-php":  "^3.270",
+        "stripe/stripe-php": "^15.0",
+        "lcobucci/jwt": "^4.2.1",
+        "kreait/firebase-php": "^7.0",
+        "mpdf/mpdf": "dev-development",
+        "chillerlan/php-qrcode": "v5.0.x-dev",
+        "aminyazdanpanah/php-ffmpeg-video-streaming": "dev-master" 
+    }
+}
