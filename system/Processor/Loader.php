@@ -16,6 +16,7 @@
 namespace ABS\Framework\System\Processor;
 
 use ABS\Framework\App\Karnel;
+use ABS\Framework\System\Auth\Session;
 
 class Loader extends Layout {
     public $role = 'default', $page_title, $public, $flash, $meta, $script, $style, $resource, $root, $menu_active, $fav_icon, $active_admin = true;
@@ -48,6 +49,7 @@ class Loader extends Layout {
             $data['favicon']     = $this->fav_icon;
             $data['script']      = $this->script;
             $data['style']       = $this->style;
+            $data['lang']        = Session::get('lang');
             $data['menu_active'] = $this->menu_active;
             $data['x_layout']    = $this->x_content_layout;
         } else {
@@ -57,6 +59,7 @@ class Loader extends Layout {
             $data['favicon']     = $this->fav_icon;
             $data['script']      = $this->script;
             $data['style']       = $this->style;
+            $data['lang']        = Session::get('lang');
             $data['menu_active'] = $this->menu_active;
             $data['x_layout']    = $this->x_content_layout;
             $data['numbers']     = [1, 3, 4, 2, 4, 2, 5];
@@ -82,45 +85,6 @@ class Loader extends Layout {
     }
 
     /**
-     * single view loader
-     * @param view name|path of the view without extension
-     * @param data array of some data to receive in the view
-     */
-    public function singleView( $view, $data = NULL ) {
-        if ( $data == TRUE ) {
-            $data['page_title']  = $this->page_title;
-            $data['flash']       = $this->flash;
-            $data['meta']        = $this->meta;
-            $data['favicon']     = $this->fav_icon;
-            $data['script']      = $this->script;
-            $data['style']       = $this->style;
-            $data['menu_active'] = $this->menu_active;
-            $data['x_layout']    = $this->x_content_layout;
-        } else {
-            $data['page_title']  = $this->page_title;
-            $data['flash']       = $this->flash;
-            $data['meta']        = $this->meta;
-            $data['favicon']     = $this->fav_icon;
-            $data['script']      = $this->script;
-            $data['style']       = $this->style;
-            $data['menu_active'] = $this->menu_active;
-            $data['x_layout']    = $this->x_content_layout;
-        }
-
-        if ( file_exists( 'public/view/' . ltrim( $view, '/' ) . '.abs' ) ) {
-            echo $this->absEngine( 'public/view/' . ltrim( $view, '/' ) . ".abs", $this->fileMimes, $this->loaderData );
-        } else {
-            if ( file_exists( 'public/view/' . ltrim( $view, '/' ) . ".php" ) ) {
-                $this->absEngine( 'public/view/' . ltrim( $view, '/' ) . ".php", $this->fileMimes, $this->loaderData );
-                $this->getTitle();
-                echo $this->import();
-            } else {
-                echo "View Not Found";
-            }
-        }
-    }
-
-    /**
      * set a flash message
      * @param background flash message body background
      * @param textColor flash message body text color
@@ -139,21 +103,21 @@ $this->flash = ob_get_clean();
      * not found page|path loader
      */
     public static function notFound() {
-        include 'public/view/common/404.php';
+        echo '<!DOCTYPE html><html lang="en"><head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>404 | PAGE Not Found</title> <style> body{ width: 100vw; height: 100vh; background: #000000e5; display: flex; align-items: center; justify-content: center; overflow: hidden; } h3{ font-size: 1.9em; font-weight: 500; color: #fff; } </style></head><body> <h3>404 | PAGE NOT FOUND</h3></body></html>';
     }
 
     /**
      * unauthorized page|path loader
      */
     public static function unAuthorized() {
-        include 'public/view/common/401.php';
+        echo '<!DOCTYPE html><html lang="en"><head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>401 | UN AUTHORIZED</title> <style> body{ width: 100vw; height: 100vh; background: #000000e5; display: flex; align-items: center; justify-content: center; overflow: hidden; } h3{ font-size: 1.9em; font-weight: 500; color: #fff; } </style></head><body> <h3>401 | UNAUTHORIZED ACCESS</h3></body></html>';
     }
 
     /**
      * Method not found page|path loader
      */
     public static function methodNotAllowed() {
-        include 'public/view/common/405.php';
+        echo '<!DOCTYPE html><html lang="en"><head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>405 | METHOD NOT ALLOWED</title> <style> body{ width: 100vw; height: 100vh; background: #000000e5; display: flex; align-items: center; justify-content: center; overflow: hidden; } h3{ font-size: 1.9em; font-weight: 500; color: #fff; } </style></head><body> <h3>405 | METHOD NOT ALLOWED</h3></body></html>';
     }
 }
 

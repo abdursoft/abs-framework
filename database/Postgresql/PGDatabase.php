@@ -3,8 +3,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-06-20
- * @version      1.0.5
+ * @updated      2024-08-01
+ * @version      1.0.6
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -17,8 +17,8 @@ namespace ABS\Framework\DB\Postgresql;
 
 use PDO;
 
-class PGDatabase extends Postgress {
-    private $table, $select, $sql, $query, $all, $where, $order, $limit;
+class PGDatabase extends Postgres {
+    protected $tables, $selects, $sql, $query, $all, $where = [], $order, $limit, $wheres;
 
     public function __construct() {
         parent::__construct();
@@ -33,15 +33,15 @@ class PGDatabase extends Postgress {
         if ( is_array( $table ) ) {
             foreach ( $table as $key => $val ) {
                 if ( !empty( $key ) && !is_int( $key ) ) {
-                    $this->table .= "`$key` AS `$val`, ";
+                    $this->tables .= "`$key` AS `$val`, ";
                 } else {
-                    $this->table .= " `$val`, ";
+                    $this->tables .= " `$val`, ";
                 }
             }
         } else {
-            $this->table = $table;
+            $this->tables = $table;
         }
-        $this->table = trim( $this->table, ', ' );
+        $this->tables = trim( $this->tables, ', ' );
         return $this;
     }
 
@@ -50,15 +50,15 @@ class PGDatabase extends Postgress {
      * @param select name of the data key for table|collection
      * will generate an error if table|key not exist
      */
-    public function select( array | string | null $select = null ) {
-        if ( is_array( $select ) ) {
+    public function select( array | string | null $selects = null ) {
+        if ( is_array( $selects ) ) {
             $sql = '';
-            for ( $i = 0; $i < count( $select ); $i++ ) {
-                $sql .= "`$select[$i]` ,";
+            for ( $i = 0; $i < count( $selects ); $i++ ) {
+                $sql .= "`$selects[$i]` ,";
             }
             $this->sql = trim( $sql, ',' );
-        } elseif ( is_string( $select ) ) {
-            $this->sql = "`$select` ";
+        } elseif ( is_string( $selects ) ) {
+            $this->sql = "`$selects` ";
         } else {
             $this->sql = ' * ';
         }
@@ -71,12 +71,17 @@ class PGDatabase extends Postgress {
      * will generate false if content not exist
      */
     public function first() {
-        $this->query = "SELECT $this->sql FROM $this->table $this->where ORDER BY id ASC LIMIT 1";
+        $wheres      = $this->buildWhere();
+        $this->query = "SELECT $this->sql FROM $this->tables $wheres ORDER BY id ASC LIMIT 1";
         $stmt        = $this->buildQuery();
-        if ( $stmt->rowCount() > 0 ) {
-            return (object) $stmt->fetch( PDO::FETCH_ASSOC );
-        } else {
-            return false;
+        try {
+            if ( $stmt->rowCount() > 0 ) {
+                return (object) $stmt->fetch( PDO::FETCH_ASSOC );
+            } else {
+                return false;
+            }
+        } catch (\Throwable $th) {
+            $this->dbError($th,$stmt);
         }
     }
 
@@ -86,12 +91,17 @@ class PGDatabase extends Postgress {
      * will generate false if content not exist
      */
     public function last() {
-        $this->query = "SELECT $this->sql FROM $this->table $this->where ORDER BY id DESC LIMIT 1";
+        $wheres      = $this->buildWhere();
+        $this->query = "SELECT $this->sql FROM $this->tables $wheres ORDER BY id DESC LIMIT 1";
         $stmt        = $this->buildQuery();
-        if ( $stmt->rowCount() > 0 ) {
-            return (object) $stmt->fetch( PDO::FETCH_ASSOC );
-        } else {
-            return false;
+        try {
+            if ( $stmt->rowCount() > 0 ) {
+                return (object) $stmt->fetch( PDO::FETCH_ASSOC );
+            } else {
+                return false;
+            }
+        } catch (\Throwable $th) {
+            $this->dbError($th,$stmt);
         }
     }
 
@@ -113,30 +123,15 @@ class PGDatabase extends Postgress {
      * set where condition
      * @param data array of the dataset $key=>$value
      * will make a AND condition
-     * will generate an error if the condition was faild
+     * will generate an error if the condition was failed
      */
-    public function where( array $data ) {
-        if ( !empty( $data ) && is_array( $data ) ) {
-            $this->where = " WHERE ";
-            foreach ( $data as $key => $val ) {
-                if ( !empty( $key ) && !is_int( $key ) ) {
-                    if ( strtolower( $val ) == '!null' ) {
-                        $this->where .= " $key != ' ' AND ";
-                    } else {
-                        $pos = strpos( $val, '!' );
-                        if ( $pos === 0 ) {
-                            $v = trim( $val, '!' );
-                            $this->where .= " $key != '$v' AND ";
-                        } else {
-                            $this->where .= " $key = '$val' AND ";
-                        }
-                    }
-                }
-            }
-            $this->where = trim( $this->where, "AND " );
-        } else {
-            $this->where = ' ';
-        }
+    public function where( $column, $operator, $value ) {
+        $this->wheres[] = [
+            'type'     => 'AND',
+            'column'   => $column,
+            'operator' => $operator,
+            'value'    => $value,
+        ];
         return $this;
     }
 
@@ -144,38 +139,38 @@ class PGDatabase extends Postgress {
      * set orWhere condition
      * @param data array of the dataset $key=>$value
      * will make a OR condition
-     * will generate an error if the condition was faild
+     * will generate an error if the condition was failed
      */
-    public function orWhere( array $data ) {
-        if ( !empty( $data ) && is_array( $data ) ) {
-            $this->where = " WHERE ";
-            foreach ( $data as $key => $val ) {
-                if ( !empty( $key ) && !is_int( $key ) ) {
-                    if ( strtolower( $val ) == '!null' ) {
-                        $this->where .= " $key != ' ' OR ";
-                    } else {
-                        $pos = strpos( $val, '!' );
-                        if ( $pos === 0 ) {
-                            $v = trim( $val, '!' );
-                            $this->where .= " $key != '$v' OR ";
-                        } else {
-                            $this->where .= " $key = '$val' OR ";
-                        }
-                    }
-                }
-            }
-            $this->where = trim( $this->where, "OR " );
-        } else {
-            $this->where = ' ';
-        }
+    public function orWhere( $column, $operator, $value ) {
+        $this->wheres[] = [
+            'type'     => 'OR',
+            'column'   => $column,
+            'operator' => $operator,
+            'value'    => $value,
+        ];
         return $this;
+    }
+
+    public function buildWhere() {
+        if ( !empty( $this->wheres ) ) {
+            $query = ' WHERE ';
+            foreach ( $this->wheres as $index => $where ) {
+                if ( $index > 0 ) {
+                    $query .= $where['type'] . " ";
+                }
+                $query .= $where['column'] . ' ';
+                $query .= $where['operator'] . ' ';
+                $query .= ' ? ';
+            }
+            return $query;
+        }
     }
 
     /**
      * set notWhere condition
      * @param data array of the dataset $key=>$value
      * will make a NOT condition
-     * will generate an error if the condition was faild
+     * will generate an error if the condition was failed
      */
     public function notWhere( array $data ) {
         if ( !empty( $data ) && is_array( $data ) ) {
@@ -193,10 +188,10 @@ class PGDatabase extends Postgress {
     }
 
     /**
-     * set likdeWhere condition
+     * set likeWhere condition
      * @param data array of the dataset $key=>$value
      * will make a LIKE condition
-     * will generate an error if the condition was faild
+     * will generate an error if the condition was failed
      */
     public function likeWhere( array $data ) {
         if ( !empty( $data ) && is_array( $data ) ) {
@@ -254,11 +249,18 @@ class PGDatabase extends Postgress {
      * @param total name of the total values
      */
     public function sum( $key, $total ) {
-        $this->query = "SELECT SUM($key) AS $total FROM $this->table";
-        $stmt        = $this->db->prepare( $this->query );
-        $stmt->execute();
-        $row = $stmt->fetch( PDO::FETCH_ASSOC );
-        return $row[$total];
+        $wheres      = $this->buildWhere();
+        $this->query = "SELECT SUM($key) AS $total FROM $this->tables $wheres";
+        $stmt        = $this->buildQuery();
+        try {
+            if ( $stmt->rowCount() > 0 ) {
+                return $stmt->fetchAll( PDO::FETCH_OBJ );
+            } else {
+                return false;
+            }
+        } catch ( \Throwable $th ) {
+            $this->dbError( $th, $stmt );
+        }
     }
 
     /**
@@ -267,11 +269,18 @@ class PGDatabase extends Postgress {
      * @param total name of the total values
      */
     public function max( $key, $total ) {
-        $this->query = "SELECT MAX($key) AS $total FROM $this->table";
-        $stmt        = $this->db->prepare( $this->query );
-        $stmt->execute();
-        $row = $stmt->fetch( PDO::FETCH_ASSOC );
-        return $row[$total];
+        $wheres      = $this->buildWhere();
+        $this->query = "SELECT MAX($key) AS $total FROM $this->tables $wheres";
+        $stmt        = $this->buildQuery();
+        try {
+            if ( $stmt->rowCount() > 0 ) {
+                return $stmt->fetchAll( PDO::FETCH_OBJ );
+            } else {
+                return false;
+            }
+        } catch ( \Throwable $th ) {
+            $this->dbError( $th, $stmt );
+        }
     }
 
     /**
@@ -280,24 +289,38 @@ class PGDatabase extends Postgress {
      * @param total name of the total values
      */
     public function min( $key, $total ) {
-        $this->query = "SELECT MIN($key) AS $total FROM $this->table";
-        $stmt        = $this->db->prepare( $this->query );
-        $stmt->execute();
-        $row = $stmt->fetch( PDO::FETCH_ASSOC );
-        return $row[$total];
+        $wheres      = $this->buildWhere();
+        $this->query = "SELECT MIN($key) AS $total FROM $this->tables $wheres";
+        $stmt        = $this->buildQuery();
+        try {
+            if ( $stmt->rowCount() > 0 ) {
+                return $stmt->fetchAll( PDO::FETCH_OBJ );
+            } else {
+                return false;
+            }
+        } catch ( \Throwable $th ) {
+            $this->dbError( $th, $stmt );
+        }
     }
 
     /**
-     * avarage of a key|field
+     * average of a key|field
      * @param key name of the key of table|collection
      * @param total name of the total values
      */
     public function avg( $key, $total ) {
-        $this->query = "SELECT AVG($key) AS $total FROM $this->table";
-        $stmt        = $this->db->prepare( $this->query );
-        $stmt->execute();
-        $row = $stmt->fetch( PDO::FETCH_ASSOC );
-        return $row[$total];
+        $wheres      = $this->buildWhere();
+        $this->query = "SELECT AVG($key) AS $total FROM $this->tables $wheres";
+        $stmt        = $this->buildQuery();
+        try {
+            if ( $stmt->rowCount() > 0 ) {
+                return $stmt->fetchAll( PDO::FETCH_OBJ );
+            } else {
+                return false;
+            }
+        } catch ( \Throwable $th ) {
+            $this->dbError( $th, $stmt );
+        }
     }
 
     /**
@@ -306,35 +329,17 @@ class PGDatabase extends Postgress {
      * @param total name of the total values
      */
     public function count( $key, $total ) {
-        $this->query = "SELECT COUNT($key) AS $total FROM $this->table";
-        $stmt        = $this->db->prepare( $this->query );
-        $stmt->execute();
-        $row = $stmt->fetch( PDO::FETCH_ASSOC );
-        return $row[$total];
-    }
-
-    /**
-     * select a according table
-     * @param table name of the second table|collection
-     * @param column name of the foregin key
-     */
-    public function according( $table, $column ) {
-        $this->query = "SELECT $this->sql FROM $this->table $this->where";
+        $wheres      = $this->buildWhere();
+        $this->query = "SELECT COUNT($key) AS $total FROM $this->tables $wheres";
         $stmt        = $this->buildQuery();
-        if ( $stmt->rowCount() > 0 ) {
-            $this->all = $stmt->fetchAll( PDO::FETCH_ASSOC );
-        }
-        if ( !empty( $this->all ) ) {
-            $result = [];
-            foreach ( $this->all as $item ) {
-                $this->sql   = ' * ';
-                $this->table = $table;
-                $this->where( [$column => $item[$column]] );
-                array_push( $result, $this->last() );
+        try {
+            if ( $stmt->rowCount() > 0 ) {
+                return $stmt->fetchAll( PDO::FETCH_OBJ );
+            } else {
+                return false;
             }
-            return (object) $result;
-        } else {
-            return false;
+        } catch ( \Throwable $th ) {
+            $this->dbError( $th, $stmt );
         }
     }
 
@@ -350,7 +355,7 @@ class PGDatabase extends Postgress {
                 $input .= "$k=:$k,";
             }
             $input       = rtrim( $input, ',' );
-            $this->query = "INSERT INTO $this->table  SET $input";
+            $this->query = "INSERT INTO $this->tables  SET $input";
             $stmt        = $this->db->prepare( $this->query );
             foreach ( $data as $k => &$v ) {
                 $stmt->bindValue( ":$k", $v, PDO::PARAM_STR );
@@ -370,7 +375,7 @@ class PGDatabase extends Postgress {
             $input .= "$k=:$k,";
         }
         $input       = rtrim( $input, ',' );
-        $this->query = "UPDATE $this->table  SET $input $this->where";
+        $this->query = "UPDATE $this->tables  SET $input $this->where";
         $stmt        = $this->db->prepare( $this->query );
         foreach ( $data as $k => &$v ) {
             $stmt->bindValue( ":$k", $v, PDO::PARAM_STR );
@@ -384,7 +389,7 @@ class PGDatabase extends Postgress {
      * will return an error if query was bad
      */
     public function delete() {
-        $this->query = "DELETE FROM $this->table $this->where";
+        $this->query = "DELETE FROM $this->tables $this->where";
         $stmt        = $this->db->prepare( $this->query );
         return $stmt->execute();
     }
@@ -392,54 +397,103 @@ class PGDatabase extends Postgress {
     /**
      * join inner tables
      * @param data name of the second table
-     * @param foreignkey name of the key of primary table
+     * will return select SQl
+     */
+    public function buildJoin() {
+        $this->query = "SELECT $this->sql FROM $this->tables ";
+        return $this;
+    }
+
+    /**
+     * join inner tables
+     * @param data name of the second table
+     * @param foreignKey name of the key of primary table
      * @param primaryKey name of the second table key
      * will return an error if query was bad
      */
-    public function joinInner( $table, $foreignKey, $primaryKey ) {
-        $this->query = "SELECT $this->sql FROM $this->table
-        INNER JOIN $table ON $table.$primaryKey = $this->table.$foreignKey";
-        return $this->query();
+    public function join( $table, $primaryKey, $operator, $foreignKey ) {
+        $this->query .= " INNER JOIN $table ON $primaryKey $operator $foreignKey";
+        return $this;
     }
 
     /**
      * left join tables
      * @param data name of the second table
-     * @param foreignkey name of the key of primary table
+     * @param foreignKey name of the key of primary table
      * @param primaryKey name of the second table key
      * will return an error if query was bad
      */
-    public function joinLeft( $table, $foreignKey, $primaryKey ) {
-        $this->query = "SELECT $this->sql FROM $this->table
-        LEFT JOIN $table ON $table.$primaryKey = $this->table.$foreignKey";
-        return $this->query();
+    public function leftJoin( $table, $primaryKey, $operator, $foreignKey ) {
+        $wheres = $this->buildWhere();
+        $this->query .= " LEFT JOIN $table ON $primaryKey $operator $foreignKey $wheres";
+        return $this;
     }
 
     /**
      * right join tables
      * @param data name of the second table
-     * @param foreignkey name of the key of primary table
+     * @param foreignKey name of the key of primary table
      * @param primaryKey name of the second table key
      * will return an error if query was bad
      */
-    public function joinRight( $table, $foreignKey, $primaryKey ) {
-        $this->query = "SELECT $this->sql FROM $this->table
-        RIGHT JOIN $table ON $table.$primaryKey = $this->table.$foreignKey";
-        return $this->query();
+    public function rightJoin( $table, $primaryKey, $operator, $foreignKey ) {
+        $wheres = $this->buildWhere();
+        $this->query .= " RIGHT JOIN $table ON $primaryKey $operator $foreignKey $wheres";
+        return $this;
     }
 
     /**
-     * excecute the query
+     * cross join tables
+     * @param data name of the second table
+     * @param foreignKey name of the key of primary table
+     * @param primaryKey name of the second table key
+     * will return an error if query was bad
+     */
+    public function crossJoin( $table, $primaryKey, $operator, $foreignKey ) {
+        $wheres = $this->buildWhere();
+        $this->query .= " CROSS JOIN $table ON $primaryKey $operator $foreignKey $wheres";
+        return $this;
+    }
+
+    /**
+     * execute the query
      * @param null
      * will return an error if query was bad
      */
-    public function query() {
+    public function get() {
+        if ( !$this->query ) {
+            $wheres      = $this->buildWhere();
+            $this->query = "SELECT $this->sql FROM $this->tables $wheres";
+        }
+
         $stmt = $this->buildQuery();
-        if ( $stmt->rowCount() > 0 ) {
-            $this->all = $stmt->fetchAll( PDO::FETCH_ASSOC );
-            return (object) $this->all;
-        } else {
-            return false;
+        try {
+            if ( $stmt->rowCount() > 0 ) {
+                return $stmt->fetchAll( PDO::FETCH_OBJ );
+            } else {
+                return false;
+            }
+        } catch ( \Throwable $th ) {
+            $this->dbError( $th, $stmt );
+        }
+    }
+
+    /**
+     * execute the query
+     * @param null
+     * will return an error if query was bad
+     */
+    public function find( int $id, $column = 'id' ) {
+        $this->query = "SELECT  * FROM $this->tables WHERE $column='$id'";
+        $stmt        = $this->buildQuery();
+        try {
+            if ( $stmt->rowCount() > 0 ) {
+                return $stmt->fetch( PDO::FETCH_OBJ );
+            } else {
+                return false;
+            }
+        } catch ( \Throwable $th ) {
+            $this->dbError( $th, $stmt );
         }
     }
 
@@ -449,13 +503,16 @@ class PGDatabase extends Postgress {
      * will return an error if query was bad
      */
     public function all() {
-        $this->query = "SELECT $this->sql FROM $this->table $this->where";
+        $this->query = "SELECT $this->sql FROM $this->tables $this->where";
         $stmt        = $this->buildQuery();
-        if ( $stmt->rowCount() > 0 ) {
-            $this->all = $stmt->fetchAll( PDO::FETCH_ASSOC );
-            return (object) $this->all;
-        } else {
-            return false;
+        try {
+            if ( $stmt->rowCount() > 0 ) {
+                return $stmt->fetchAll( PDO::FETCH_OBJ );
+            } else {
+                return false;
+            }
+        } catch ( \Throwable $th ) {
+            $this->dbError( $th, $stmt );
         }
     }
 
@@ -465,13 +522,18 @@ class PGDatabase extends Postgress {
      * will return an error if query was bad
      */
     public function fetch() {
-        $this->query = "SELECT $this->sql FROM $this->table $this->where $this->order $this->limit";
-        $stmt        = $this->buildQuery();
-        if ( $stmt->rowCount() > 0 ) {
-            $this->all = $stmt->fetchAll( PDO::FETCH_ASSOC );
-            return (object) $this->all;
-        } else {
-            return false;
+        $this->query = "SELECT $this->sql FROM $this->tables $this->where $this->order $this->limit";
+        $stmt        = $this->db->prepare( $this->query );
+        try {
+            if ( !empty( $this->wheres ) ) {
+                $bindValues = array_column( $this->wheres, 'value' );
+                $stmt->execute( $bindValues );
+            } else {
+                $stmt->execute();
+            }
+            return $stmt;
+        } catch ( \Throwable $th ) {
+            $this->dbError( $th, $stmt );
         }
     }
 
@@ -481,7 +543,7 @@ class PGDatabase extends Postgress {
      * will return the last id of the table|collection
      */
     public function getLastID() {
-        return $this->db->lastInsertId( $this->table );
+        return $this->db->lastInsertId( $this->tables );
     }
 
     /**
@@ -490,12 +552,27 @@ class PGDatabase extends Postgress {
      * will return the result of the query
      */
     public function buildQuery() {
+        $stmt = $this->db->prepare( $this->query );
         try {
-            $stmt = $this->db->prepare( $this->query );
-            $stmt->execute();
+            if ( !empty( $this->wheres ) ) {
+                $bindValues = array_column( $this->wheres, 'value' );
+                $stmt->execute( $bindValues );
+            } else {
+                $stmt->execute();
+            }
             return $stmt;
         } catch ( \Throwable $th ) {
-            return $th->getMessage();
+            $this->dbError( $th, $stmt );
         }
+    }
+
+    private function dbError( $th, $stmt ) {
+        if(is_bool($stmt) | is_object($stmt) | is_array($stmt)){
+            $tr = '';
+        }else{
+            $tr = '<h3>'.$stmt.'</h3>';
+        }
+        echo '<!DOCTYPE html><html lang="en"><head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>DB Query Build Error</title> <style> body{ width: 100vw; height: 100vh; background: #000; display: flex; align-items: start; justify-content: center; overflow: hidden;flex-direction:column; } h3{ font-size: 1.9em; font-weight: 500; color: #fff;background:#333; padding:20px 16px; border-radius:10px;margin:20px 0px; } </style></head><body> <h3>'.$th->getMessage().'</h3>'.$tr.'</body></html>';
+        die;
     }
 }

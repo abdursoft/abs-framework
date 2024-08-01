@@ -3,8 +3,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-06-20
- * @version      1.0.5
+ * @updated      2024-08-01
+ * @version      1.0.6
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -15,9 +15,9 @@
 
 namespace ABS\Framework\System\Request;
 
-use ABS\Framework\App\Model\Model;
+use ABS\Framework\DB\DBServer;
 
-class Request extends Model {
+class Request{
     /**
      * @var array
      */
@@ -393,7 +393,7 @@ class Request extends Model {
      */
     public function unique( $argument ) {
         $explode = explode( ',', $argument );
-        $single  = $this->model->table( $explode[0] )->select()->where( [
+        $single  = DBServer::table( $explode[0] )->select()->where( [
             $explode[1] => $this->key,
         ] )->last();
         if ( $single ) {
@@ -410,7 +410,7 @@ class Request extends Model {
      */
     public function exist( $argument ) {
         $explode = explode( ',', $argument );
-        $single  = $this->model->table( $explode[0] )->select()->where( [
+        $single  = DBServer::table( $explode[0] )->select()->where( [
             $explode[1] => $this->key,
         ] )->last();
         if ( !$single ) {

@@ -1,10 +1,11 @@
 <?php
+
 /**
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-06-20
- * @version      1.0.5
+ * @updated      2024-08-01
+ * @version      1.0.6
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -20,22 +21,27 @@ use ABS\Framework\DB\Mysql\Database;
 use ABS\Framework\DB\Postgresql\PGDatabase;
 
 class DBServer {
-    public static $server;
-    private $database;
-    public function __construct() {
-        switch ( DATABASE_SERVER ) {
-        case 'mysql':
-            $this->database = new Database();
-            break;
-        case 'pgsql':
-            $this->database = new PGDatabase();
-            break;
-        case 'mongodb':
-            $this->database = new MNDatabase();
-            break;
+    private static $database = null;
+
+    public static function getInstance() {
+        if ( !self::$database ) {
+            switch ( DATABASE_SERVER ) {
+            case 'mysql':
+                self::$database = new Database();
+                break;
+            case 'pgsql':
+                self::$database = new PGDatabase();
+                break;
+            case 'mongodb':
+                self::$database = new MNDatabase();
+                break;
+            }
         }
-        self::$server = $this->database;
+        return self::$database;
+    }
+
+    public static function __callStatic( $method, $arguments ) {
+        $instance = self::getInstance();
+        return call_user_func_array( [$instance, $method], $arguments );
     }
 }
-
-new DBServer();

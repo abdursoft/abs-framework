@@ -3,8 +3,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-06-20
- * @version      1.0.5
+ * @updated      2024-08-01
+ * @version      1.0.6
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -30,10 +30,10 @@ define( 'ENC_KEY', "abskei3293lx39sl3e93ls93ls3" ); // Encrypted keys
 define( "DB_SERVER_TIMEZONE", 'Asia/Dhaka' ); //set your default timezone
 
 // Database server
-define( 'DATABASE_SERVER', 'mysql' ); //supported database mysql,pgsql,mongodb,firebase
+define( 'DATABASE_SERVER', 'mysql' ); //supported database mysql,pgsql,mongodb
 
 //MYSQL database credentials
-define( "DB", 'world_timezone' ); //Database Name
+define( "DB", 'jothashilpa' ); //Database Name
 define( "HOST", 'localhost' ); //Database Host Name
 define( "USER", 'root' ); //Database User Name
 define( "PASSWORD", '' ); //Database Password

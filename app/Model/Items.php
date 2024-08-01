@@ -17,13 +17,14 @@ namespace ABS\Framework\App\Model;
 
 use ABS\Framework\DB\DBServer;
 
-class Users extends DBServer {
+class Items{
+    
     /**
      * declare the database connection
      * set the query table|collection
      */
-    public static function model() {
-        return self::table( self::getTable() );
+    public static function query() {
+        return DBServer::table( self::getTable() );
     }
 
     /**

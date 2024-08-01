@@ -3,8 +3,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-06-20
- * @version      1.0.5
+ * @updated      2024-08-01
+ * @version      1.0.6
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -15,17 +15,12 @@
 
 namespace ABS\Framework\System\Validation;
 
-use ABS\Framework\App\Model\Model;
-use ABS\Framework\System\Request\Request;
+use ABS\Framework\DB\DBServer;
 
-class Validation extends Model {
+class Validation{
 
     private $input, $key, $message, $error = [], $warning, $response, $code, $request;
     public $data;
-
-    public function __construct() {
-        parent::__construct();
-    }
 
     /**
      * extract the input data's value
@@ -214,7 +209,7 @@ class Validation extends Model {
      * will generate an error message if the data is not valid
      */
     public function unique( $table, $key ) {
-        $single = $this->model->table( $table )->select()->where( [
+        $single = DBServer::table( $table )->select()->where( [
             $key => $this->input,
         ] )->last();
         if ( $single ) {
@@ -230,7 +225,7 @@ class Validation extends Model {
      * will generate an error message if the data is not valid
      */
     public function exist( $table, $key ) {
-        $single = $this->model->table( $table )->select()->where( [
+        $single = DBServer::table( $table )->select()->where( [
             $key => $this->input,
         ] )->last();
         if ( !$single ) {
