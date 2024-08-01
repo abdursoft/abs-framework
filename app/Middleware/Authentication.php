@@ -3,24 +3,21 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-06-20
- * @version      1.0.5
+ * @updated      2024-08-01
+ * @version      1.0.6
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
  * @license      MIT
  *
  * @Written by Abdur Rahim
- */
+*/
 
-namespace ABS\Framework\DB;
+namespace ABS\Framework\App\Middleware;
 
-class Master extends DBServer {
+class Authentication{
 
-    protected $model;
-    public function __construct() {
-        parent::__construct();
-        $this->model = $this->server;
+    public static function checkAuth(){
+        
     }
-
 }

@@ -3,8 +3,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-06-20
- * @version      1.0.5
+ * @updated      2024-08-01
+ * @version      1.0.6
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -34,12 +34,10 @@ class Route {
     private static $isPath      = false;
     private $parameter          = [];
     private static $param       = [];
-    private static $request;
     private static $methodName;
     private static $prefix = '';
 
     public function __construct() {
-        self::$request = new Request();
     }
 
     /**
@@ -335,14 +333,17 @@ class Route {
     }
 
     private static function csrfVerification() {
-        $method = self::$request->server( 'REQUEST_METHOD' );
-        if ( MODE === 'web' && $method === 'POST' ) {
-            $option = Karnel::csrf();
-            $csrf   = self::$request->input( 'csrf' );
-            if ( !$csrf && $option['csrf'] === true ) {
-                self::$request->response( [
-                    'message' => "CSRF Token validation error or Missing @csrf",
-                ], 300 );
+        $option = Karnel::csrf();
+        $request = new Request();
+        if($option){
+            $method = $request->server( 'REQUEST_METHOD' );
+            if ( $method && MODE === 'web' && $method === 'POST' ) {
+                $csrf   = $request->input( 'csrf' );
+                if ( !$csrf && $option['csrf'] === true ) {
+                    $request->response( [
+                        'message' => "CSRF Token validation error or Missing @csrf",
+                    ], 300 );
+                }
             }
         }
     }

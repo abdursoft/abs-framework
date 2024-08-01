@@ -3,8 +3,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-06-20
- * @version      1.0.5
+ * @updated      2024-08-01
+ * @version      1.0.6
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -55,12 +55,15 @@ class MNDatabase extends Mongo {
      */
     public function first() {
         $table  = $this->table;
-        $result = $this->db->$table->findOne( $this->where, [
-            'sort' => [
-                '_id' => 1,
-            ],
-        ] );
-        return ( $result );
+        try {
+            return $this->db->$table->findOne( $this->where, [
+                'sort' => [
+                    '_id' => 1,
+                ],
+            ] );
+        } catch (\Throwable $th) {
+            $this->dbError($th);
+        }
     }
 
     /**
@@ -70,12 +73,30 @@ class MNDatabase extends Mongo {
      */
     public function last() {
         $table  = $this->table;
-        $result = $this->db->$table->findOne( $this->where, [
-            'sort' => [
-                '_id' => -1,
-            ],
-        ] );
-        return ( $result );
+        try {
+            return $this->db->$table->findOne( $this->where, [
+                'sort' => [
+                    '_id' => -1,
+                ],
+            ] );
+        } catch (\Throwable $th) {
+            $this->dbError($th);
+        }
+    }
+
+    /**
+     * set where condition
+     * @param data array of the dataset $key=>$value
+     * will make a AND condition
+     * will generate an error if the condition was failed
+     */
+    public function where( array $data ) {
+        if ( !empty( $data ) && is_array( $data ) ) {
+            $this->where = $data;
+        } else {
+            $this->where = [];
+        }
+        return $this;
     }
 
     /**
@@ -85,22 +106,11 @@ class MNDatabase extends Mongo {
      */
     public function distinct( string $column = null ) {
         $table = $this->table;
-        $this->db->$table->distinct( $column, $this->where );
-    }
-
-    /**
-     * set where condition
-     * @param data array of the dataset $key=>$value
-     * will make a AND condition
-     * will generate an error if the condition was faild
-     */
-    public function where( array $data ) {
-        if ( !empty( $data ) && is_array( $data ) ) {
-            $this->where = $data;
-        } else {
-            $this->where = [];
+        try {
+            return $this->db->$table->distinct( $column, $this->where );
+        } catch (\Throwable $th) {
+            $this->dbError($th);
         }
-        return $this;
     }
 
     /**
@@ -143,19 +153,23 @@ class MNDatabase extends Mongo {
      */
     public function sum( $key, $total ) {
         $table = $this->table;
-        return $this->db->$table->aggregate( [
-            [
-                '$match' => $this->where,
-            ],
-            [
-                '$group' => [
-                    '_id'  => null,
-                    $total => [
-                        '$sum' => "$$key",
+        try {
+            return $this->db->$table->aggregate( [
+                [
+                    '$match' => $this->where,
+                ],
+                [
+                    '$group' => [
+                        '_id'  => null,
+                        $total => [
+                            '$sum' => "$$key",
+                        ],
                     ],
                 ],
-            ],
-        ] );
+            ] );
+        } catch (\Throwable $th) {
+            $this->dbError($th);
+        }
     }
 
     /**
@@ -165,19 +179,23 @@ class MNDatabase extends Mongo {
      */
     public function max( $key, $total ) {
         $table = $this->table;
-        return $this->db->$table->aggregate( [
-            [
-                '$match' => $this->where,
-            ],
-            [
-                '$group' => [
-                    '_id'  => null,
-                    $total => [
-                        '$max' => "$$key",
+        try {
+            return $this->db->$table->aggregate( [
+                [
+                    '$match' => $this->where,
+                ],
+                [
+                    '$group' => [
+                        '_id'  => null,
+                        $total => [
+                            '$max' => "$$key",
+                        ],
                     ],
                 ],
-            ],
-        ] );
+            ] );
+        } catch (\Throwable $th) {
+            $this->dbError($th);
+        }
     }
 
     /**
@@ -187,41 +205,49 @@ class MNDatabase extends Mongo {
      */
     public function min( $key, $total ) {
         $table = $this->table;
-        return $this->db->$table->aggregate( [
-            [
-                '$match' => $this->where,
-            ],
-            [
-                '$group' => [
-                    '_id'  => null,
-                    $total => [
-                        '$min' => "$$key",
+        try {
+            return $this->db->$table->aggregate( [
+                [
+                    '$match' => $this->where,
+                ],
+                [
+                    '$group' => [
+                        '_id'  => null,
+                        $total => [
+                            '$min' => "$$key",
+                        ],
                     ],
                 ],
-            ],
-        ] );
+            ] );
+        } catch (\Throwable $th) {
+            $this->dbError($th);
+        }
     }
 
     /**
-     * avarage of a key|field
+     * average of a key|field
      * @param key name of the key of table|collection
      * @param total name of the total values
      */
     public function avg( $key, $total ) {
         $table = $this->table;
-        return $this->db->$table->aggregate( [
-            [
-                '$match' => $this->where,
-            ],
-            [
-                '$group' => [
-                    '_id'  => null,
-                    $total => [
-                        '$avg' => "$$key",
+        try {
+            return $this->db->$table->aggregate( [
+                [
+                    '$match' => $this->where,
+                ],
+                [
+                    '$group' => [
+                        '_id'  => null,
+                        $total => [
+                            '$avg' => "$$key",
+                        ],
                     ],
                 ],
-            ],
-        ] );
+            ] );
+        } catch (\Throwable $th) {
+            $this->dbError($th);
+        }
     }
 
     /**
@@ -231,8 +257,12 @@ class MNDatabase extends Mongo {
      */
     public function count() {
         $table = $this->table;
-        $rows  = $this->db->$table->count( $this->where );
-        return $rows;
+        try {
+            $rows  = $this->db->$table->count( $this->where );
+            return $rows;
+        } catch (\Throwable $th) {
+            $this->dbError($th);
+        }
     }
 
     /**
@@ -242,19 +272,53 @@ class MNDatabase extends Mongo {
      */
     public function fetch() {
         $table = $this->table;
-        if ( !empty( $this->order ) ) {
-            $rows = $this->db->$table->find( $this->where, $this->order );
-        } else {
-            $rows = $this->db->$table->find( $this->where );
+        try {
+            if ( !empty( $this->order ) ) {
+                $rows = $this->db->$table->find( $this->where, $this->order );
+            } else {
+                $rows = $this->db->$table->find( $this->where );
+            }
+            return $rows;
+        } catch (\Throwable $th) {
+            $this->dbError($th);
         }
+    }
 
-        return $rows;
+    /**
+     * fetch all data with limit
+     * @param null no data|parameter is required
+     * will return an error if query was bad
+     */
+    public function get() {
+        $table = $this->table;
+        try {
+            if ( !empty( $this->order ) ) {
+                $rows = $this->db->$table->find( $this->where, $this->order );
+            } else {
+                $rows = $this->db->$table->find( $this->where );
+            }
+            return $rows;
+        } catch (\Throwable $th) {
+            $this->dbError($th);
+        }
+    }
+
+    public function find($id,$column='_id') {
+        $table  = $this->table;
+        try {
+            $result = $this->db->$table->findOne([
+                $column => $id,
+            ] );
+            return ( $result );
+        } catch (\Throwable $th) {
+            $this->dbError($th);
+        }
     }
 
     /**
      * select a according table
      * @param table name of the second table|collection
-     * @param column name of the foregin key
+     * @param column name of the foreign key
      */
     public function according( $table, $primary_Key, $secondary_key, $lookup_as, $condition ) {
         $table = $this->table;
@@ -332,5 +396,10 @@ class MNDatabase extends Mongo {
             $rows = $this->db->$table->find( $this->where );
         }
         return $rows;
+    }
+
+    private function dbError($th){
+        echo '<!DOCTYPE html><html lang="en"><head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>DB Query Build Error</title> <style> body{ width: 100vw; height: 100vh; background: #000; display: flex; align-items: start; justify-content: center; overflow: hidden;flex-direction:column; } h3{ font-size: 1.9em; font-weight: 500; color: #fff;background:#333; padding:20px 16px; border-radius:10px;margin:20px 0px; } </style></head><body> <h3>'.$th->getMessage().'</h3></body></html>';
+        die;
     }
 }

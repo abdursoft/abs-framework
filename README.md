@@ -1,10 +1,14 @@
 # ABS MVC framework base on PHP OOP  
-It's a custom php mvc frame work developed by abdursoft. It's very easy to use and customizable.
+It's a custom php mvc framework developed by abdursoft. It's very easy to use and customizable.
 Now it's supported many features as like as laravel and blade template. 
 
-I build a template engin called ABS Template engine that integrated in this framework. It will make your code very simplified and powerful. Now you can use many thing that use on laravel such as print, echo, for loop, foreach loop, switch case and much more.
+I build a template engin called ABS Template engine that integrated in this framework. It will make your code very simplified and powerful. Now you can use many thing that use on laravel such as print, echo, for loop, foreach loop, switch case and so on.
 
 You can also pass the page title, meta tags, custom styles, javascript and so on. More over you can easily use master layout and child component and extend them very easily. This template engin works as OOP architecture.
+
+Before run the project, You need to enable some php extension from php.ini file.
+
+``sodium, tidy, zip, xsl,pdo,mysql,pgsql,mongodb``
 
 Now let's start with ABS Framework.
 <pre>composer create-project abs-framework/php project_name</pre>
@@ -26,7 +30,7 @@ public static function csrf() {
 
 public static function layout() {
     return [
-        'minify' =&gt; false,
+        'minify' =&gt; true,
         'mime'   =&gt; ['php', 'html', 'htm', 'blade.php', 'abs'],
     ];
 }
@@ -50,7 +54,7 @@ define( "SITE_TITLE", 'ABS MVC FRAMEWORK' ); //site name or title
 define( "FAV_ICON", BASE_URL . "assets/images/premium.png" ); //site logo
 define( 'DEFAULT_KEYWORDS', 'abs mvc developed by abdursoft' ); //Default keywords
 
-define( 'DATABASE_SERVER', 'mysql' ); //supported database mysql,pgsql,mongodb,firebase
+define( 'DATABASE_SERVER', 'mysql' ); //supported database mysql,pgsql,mongodb
 </pre>
 
 Moreover there is a lot of variable for some special functions and package just update the when you are going to use that package.
@@ -132,7 +136,6 @@ class User extends Controller {
         try {
             $user = Auth::jwtDecode( $this-&gt;request-&gt;input['token'] );
             $this-&gt;response( [
-                'status'  =&gt; 1,
                 'message' =&gt; 'server is ok',
                 'data'    =&gt; $user,
             ], 200 );
@@ -149,7 +152,6 @@ class User extends Controller {
             $token = Auth::jwtAUTH( $param, 'users' );
             Session::set( 'jwt_token', $token );
             $this-&gt;response( [
-                'status'     =&gt; 1,
                 'message'    =&gt; 'Login successful',
                 'token'      =&gt; $token,
                 'token_type' =&gt; 'Bearer',
@@ -256,7 +258,16 @@ form.php
 ``@import(content)`` will receive ``@export(content)`` from child component
 ``@extend(layout)`` will inherit the main ``layout`` component and data
 ``@export(content)`` will export ``@export(content)`` data from child to layout component
+``@Session($item)`` Will print the session value of the $_SESSION[$item]
+``@Text($nice)`` Will print the multi lang value of $nice
+``@echo($nice)`` Will print the $nice variable
+``@printf($nice)`` Will print the $nice variable
+``@print_r($nice)`` Will print the $nice variable
 ``{{$title}}`` will print the ``$title`` value
+``{{assets('file_path/file_name)}}`` will include the assets file from assets directory
+``{{storage('file_path/file_name)}}`` will include the storage file from storage/uploads directory
+``{{resource('file_path/file_name)}}`` will include the resource file from public/resource directory
+``{/ php_code /}`` execute the all PHP codes without ``<?php ?>`` starting and ending sign
 
 Others template directives
 <pre>
@@ -288,4 +299,108 @@ Others template directives
     @default
         @echo('nothing')
 @endswitch
+</pre>
+
+
+&lt;h3&gt;Database and Model&lt;/h3&gt;
+To create a model file open the directory ``app/Model`` then make a new php file according your table name. If you have a table name ``users`` in your database you have to create the model as ``Users.php`` and the inner content should be
+
+<pre>
+class Users{
+
+    public static function query() {
+        return DBServer::table( self::getTable() );
+    }
+
+    public static function getTable() {
+        $class = get_called_class();
+        $class = explode( '\\', $class );
+        return strtolower( end( $class ) );
+    }
+}
+</pre>
+
+&lt;h4&gt;Whats the facility of a model&lt;/h4&gt;
+
+``-Data insert``
+``-Data read``
+``-Data update``
+``-Data delete``
+``-Data aggregate ``
+``-Data joining``
+
+&lt;h4&gt;How to insert data with a model&lt;/h4&gt;
+
+<pre>
+Route::post( '/user-create', function ( ) {
+    $request = new Request();
+    Users::query()->create([
+        'name' => $this->request->input('name'),
+        'email' => $request->input('email'),
+        'phone' => $request->input('phone'),
+        'gender' => $request->input('gender')
+    ]);
+    echo 'User successfully created';
+}, ['name'] );
+</pre>
+[N.B] Users model ``use alias`` is add your control/route page.
+
+
+&lt;h4&gt;How to update data with a model&lt;/h4&gt;
+
+<pre>
+Route::post( '/user-update', function ( ) {
+    $request = new Request();
+    Users::query()->where('id','=',1)->update([
+        'name' => $request->input('name'),
+        'email' => $request->input('email'),
+        'phone' => $request->input('phone'),
+        'gender' => $request->input('gender')
+    ]);
+    echo 'User successfully updated';
+}, ['name'] );
+</pre>
+
+
+&lt;h4&gt;How to fetch all data from a model for a single user&lt;/h4&gt;
+
+<pre>
+Route::post( '/user-get-all-single', function ( ) {
+    $request = new Request();
+    Users::query()->select()->where($column,$operator,$value)->last();
+    echo 'User successfully retrieved';
+}, ['name'] );
+</pre>
+
+&lt;h4&gt;How to fetch specified data from a model for a single user&lt;/h4&gt;
+
+<pre>
+Route::post( '/user-get-specified', function ( ) {
+    $request = new Request();
+    Users::query()->select(['name','phone'])->where([
+        'id' => 1 ?? $request->input('id')
+    ])->last();
+    echo 'User successfully retrieved';
+}, ['name'] );
+</pre>
+
+
+&lt;h4&gt;How to fetch all data from a model &lt;/h4&gt;
+
+<pre>
+Route::post( '/user-get-all', function ( ) {
+    $request = new Request();
+    Users::query()->select()->where($column,$operator, $value)->get();
+    echo 'User successfully retrieved';
+}, ['name'] );
+</pre>
+
+&lt;h4&gt;How to fetch all data from a model with orderby and limit &lt;/h4&gt;
+
+<pre>
+Route::post( '/user-get-oder-all', function ( ) {
+    $request = new Request();
+    Users::query()->select()->orderBy('id', 'DESC')->where($column,$operator,$value)->limit(3,10)->get();
+    echo 'User successfully retrieved';
+}, ['name'] );
 </pre>

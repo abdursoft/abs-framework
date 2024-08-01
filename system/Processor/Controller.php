@@ -3,8 +3,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-06-20
- * @version      1.0.5
+ * @updated      2024-08-01
+ * @version      1.0.6
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -15,18 +15,14 @@
 
 namespace ABS\Framework\System\Processor;
 
-use ABS\Framework\App\Model\Model;
 use ABS\Framework\System\Request\Request;
 
 class Controller {
     public $load;
-    public $server;
     public $request;
     public function __construct() {
         $this->load    = new Loader();
-        $server        = new Model();
         $this->request = new Request();
-        $this->server  = $server->model;
     }
 
     /**
