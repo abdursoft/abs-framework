@@ -18,7 +18,7 @@
             "ABS\\Framework\\PLUGIN\\" : "plugins/"
         }
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "require": {
         "phpmailer/phpmailer": "^6.9.1",
         "james-heinrich/getid3": "2.0.x-dev",
