@@ -8,7 +8,7 @@ You can also pass the page title, meta tags, custom styles, javascript and so on
 
 Before run the project, You need to enable some php extension from php.ini file.
 
-``sodium, tidy, zip, xsl,pdo,mysql,pgsql,mongodb``
+``sodium, tidy, zip, xsl,pdo,mysql,pgsql``
 
 Now let's start with ABS Framework.
 <pre>composer create-project abs-framework/php project_name</pre>
@@ -31,7 +31,7 @@ public static function csrf() {
 public static function layout() {
     return [
         'minify' =&gt; true,
-        'mime'   =&gt; ['php', 'html', 'htm', 'blade.php', 'abs'],
+        'mime'   =&gt; ['php', 'html', 'htm', 'abs'],
     ];
 }
 </pre>
@@ -335,7 +335,7 @@ class Users{
 Route::post( '/user-create', function ( ) {
     $request = new Request();
     Users::query()->create([
-        'name' => $this->request->input('name'),
+        'name' => $request->input('name'),
         'email' => $request->input('email'),
         'phone' => $request->input('phone'),
         'gender' => $request->input('gender')
@@ -377,9 +377,7 @@ Route::post( '/user-get-all-single', function ( ) {
 <pre>
 Route::post( '/user-get-specified', function ( ) {
     $request = new Request();
-    Users::query()->select(['name','phone'])->where([
-        'id' => 1 ?? $request->input('id')
-    ])->last();
+    Users::query()->select(['name','phone'])->where($column,$operator,$value)->last();
     echo 'User successfully retrieved';
 }, ['name'] );
 </pre>
