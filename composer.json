@@ -1,5 +1,5 @@
 {
-    "name": "abs-framework/php",
+    "name": "abdursoft/php",
     "description": "ABS-Framework is one of the best mvc framework on PHP developed by abdursoft. It's supported multiple databases and a new template engine like blade. Now you can easily build your project with this framework. It has default jwt authentication system",
     "type": "project",
     "license": "MIT",

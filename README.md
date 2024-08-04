@@ -11,7 +11,7 @@ Before run the project, You need to enable some php extension from php.ini file.
 ``sodium, tidy, zip, xsl,pdo,mysql,pgsql``
 
 Now let's start with ABS Framework.
-<pre>composer create-project abs-framework/php project_name</pre>
+<pre>composer create-project abdursoft/php project_name</pre>
 
 After installing the package update the ``composer.json`` file content with ``example.composer.json`` then update the composer
 
