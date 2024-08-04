@@ -1,6 +1,6 @@
 {
     "name": "abdursoft/php",
-    "description": "abdursoft php mvc framework. Just work with fund. It's supported multiple databases and a new template engine like blade. Now you can easily build your project with this framework. It has default jwt authentication system",
+    "description": "abdursoft php mvc framework. Just work with fun. It's supported multiple databases and a new template engine like blade. Now you can easily build your project with this framework. It has default jwt authentication system",
     "type": "project",
     "license": "MIT",
     "version": "1.0.7",
