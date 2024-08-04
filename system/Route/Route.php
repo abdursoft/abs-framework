@@ -3,8 +3,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-08-01
- * @version      1.0.6
+ * @updated      2024-08-04
+ * @version      1.0.6.2
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -16,8 +16,6 @@
 namespace ABS\Framework\System\Route;
 
 use ABS\Framework\App\Karnel;
-use ABS\Framework\System\Auth\Auth;
-use ABS\Framework\System\Auth\Session;
 use ABS\Framework\System\Processor\Loader;
 use ABS\Framework\System\Request\Request;
 
@@ -27,9 +25,11 @@ class Route {
     private const METHOD_POST   = 'POST';
     private const METHOD_PUT    = 'PUT';
     private const METHOD_DELETE = 'DELETE';
+    private const METHOD_PATCH = 'PATCH';
+    private const METHOD_OPTIONS = 'OPTIONS';
+    private static $mode = 'web';
     private static $middleware  = null;
     private static $isAuth      = false;
-    private static $notFound    = false;
     private static $isMethod    = false;
     private static $isPath      = false;
     private $parameter          = [];
@@ -93,52 +93,6 @@ class Route {
         }
     }
 
-    /**
-     * route middleware method
-     * @param role name of the auth role
-     * @param routes  an array of all routes
-     * will protect the routes with role
-     */
-    public function middleware( string $role, array $routes, string $sub_role = null ): void// not completed yet
-    {
-        $this->middleware = $role;
-        $requestUri       = parse_url( $_SERVER['REQUEST_URI'] );
-        $requestPath      = $requestUri['path'] != '/' ? rtrim( $requestUri['path'], '/' ) : $requestUri['path'];
-        if ( MODE == 'web' ) {
-            if ( Session::get( $role ) | $sub_role === Session::get( $role ) ) {
-                if ( !empty( $routes ) ) {
-                    foreach ( $routes as $route ) {
-                        if ( isset( $route[3] ) ) {
-                            $this->addHandler( $this->method_sanitizer( $route['0'] ), $route[1], $route[2], $route[3] );
-                        } else {
-                            $this->addHandler( $this->method_sanitizer( $route['0'] ), $route[1], $route[2] );
-                        }
-                    }
-                }
-            } else {
-                $this->isAuth = true;
-            }
-        } else {
-            if ( Auth::getHeader() ) {
-                if ( Auth::getHeader()->data->role === $this->middleware | Auth::getHeader()->data->role === $sub_role ) {
-                    if ( !empty( $routes ) ) {
-                        foreach ( $routes as $route ) {
-                            if ( isset( $route[3] ) ) {
-                                $this->addHandler( $this->method_sanitizer( $route['0'] ), $route[1], $route[2], $route[3] );
-
-                            } else {
-                                $this->addHandler( $this->method_sanitizer( $route['0'] ), $route[1], $route[2] );
-                            }
-                        }
-                    }
-                } else {
-                    $this->isAuth = true;
-                }
-            } else {
-                $this->isAuth = true;
-            }
-        }
-    }
 
     /**
      * route middleware method
@@ -154,24 +108,6 @@ class Route {
                 $handler->{$role[1]}($callback);
             } else {
                 call_user_func($role[0],$callback);
-            }
-        }else{
-            if ( MODE == 'web' ) {
-                if ( Session::get( $role ) ) {
-                    call_user_func( $callback);
-                } else {
-                    self::$isAuth = true;
-                }
-            } else {
-                if ( Auth::getHeader() ) {
-                    if ( Auth::getHeader()->data->role === $role ) {
-                        call_user_func( $callback);
-                    } else {
-                        self::$isAuth = true;
-                    }
-                } else {
-                    self::$isAuth = true;
-                }
             }
         }
     }
@@ -203,6 +139,15 @@ class Route {
         call_user_func( $callback, [$groupName] );
     }
 
+
+    /**
+     * set the application mode
+     * will set the mode on web | api
+     */
+    public static function appMode($mode){
+        self::$mode = $mode;
+    }
+
     /**
      * server method sanitizer
      * @param method name of the server method
@@ -217,6 +162,10 @@ class Route {
             return self::METHOD_DELETE;
         case 'put':
             return self::METHOD_PUT;
+        case 'patch':
+            return self::METHOD_PATCH;
+        case 'options':
+            return self::METHOD_OPTIONS;
         default:
             return self::METHOD_GET;
         }
@@ -247,6 +196,7 @@ class Route {
     public static function run() {
         $requestUri  = parse_url( $_SERVER['REQUEST_URI'] );
         $requestPath = $requestUri['path'] != '' ? rtrim( $requestUri['path'], '/' ) : $requestUri['path'];
+        $requestPath = str_replace('/api','',$requestPath);
         $method      = $_SERVER['REQUEST_METHOD'];
         $callback    = null;
 
@@ -288,7 +238,7 @@ class Route {
 
         if ( !$callback ) {
             if ( self::$isAuth ) {
-                if ( MODE === 'api' ) {
+                if ( self::$mode === 'api' ) {
                     http_response_code( 401 );
                     header( 'Content-type:application/json' );
                     echo json_encode( [
@@ -337,7 +287,7 @@ class Route {
         $request = new Request();
         if($option){
             $method = $request->server( 'REQUEST_METHOD' );
-            if ( $method && MODE === 'web' && $method === 'POST' ) {
+            if ( $method && self::$mode === 'web' && $method === 'POST' ) {
                 $csrf   = $request->input( 'csrf' );
                 if ( !$csrf && $option['csrf'] === true ) {
                     $request->response( [

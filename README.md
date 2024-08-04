@@ -1,4 +1,4 @@
-# ABS MVC framework base on PHP OOP  
+# ABS MVC framework base on PHP OOP 1.0.6.1 
 It's a custom php mvc framework developed by abdursoft. It's very easy to use and customizable.
 Now it's supported many features as like as laravel and blade template. 
 
@@ -39,17 +39,12 @@ Now change the CSRF mode true/false. If you make this true then csrf service wil
 
 After that you have to change mime types as you want but remember that for other file's extension consistency. If you want a minify text when you go to page-source-view then make minify true otherwise false.
 
+
 Now you have to set up some required variable on ``core\Config\Config.php``
-
-For web application make the ``MODE`` web
-<pre>define( 'MODE', 'web' );</pre>
-
-For api application make the ``MODE`` api
-<pre>define( 'MODE', 'api' );</pre>
 
 Now make the changes with your preferred data for these variables
 <pre>
-define( "BASE_URL", 'http://localhost/mvc/' ); //set root directory/domain
+define( "BASE_URL", 'http://domain.example/' ); //set root directory/domain
 define( "SITE_TITLE", 'ABS MVC FRAMEWORK' ); //site name or title
 define( "FAV_ICON", BASE_URL . "assets/images/premium.png" ); //site logo
 define( 'DEFAULT_KEYWORDS', 'abs mvc developed by abdursoft' ); //Default keywords
@@ -185,6 +180,13 @@ Now lets run the project for first time.
 <pre>
 php -S localhost:9000
 </pre>
+
+Routing system for the web and api
+``web routes``
+``https://domain.example/path_uri``
+
+``api routes``
+``https://domain.example/api/path_uri``
 
 If the project is running successfully then you can test the all routes. Now time to update the layout page and children component.
 -First create a components folder/directory in ``public/view/`` then create some files such as ``header.php`` and ``footer.php`` and ``layout.php``
