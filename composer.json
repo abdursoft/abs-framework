@@ -1,8 +1,9 @@
 {
     "name": "abs-framework/php",
-    "description": "ABS-Framework is one of the best mvc framework on PHP developed by abdursoft. It's full customizable and configuration. It's supported multiple databases and a new template engine as blade. Now you can easily build your project with this framework. It has default jwt authentication system",
+    "description": "ABS-Framework is one of the best mvc framework on PHP developed by abdursoft. It's supported multiple databases and a new template engine like blade. Now you can easily build your project with this framework. It has default jwt authentication system",
     "type": "project",
     "license": "MIT",
+    "version": "1.0.6.1",
     "authors": [
         {
             "name": "Abdur Rahim",
@@ -22,6 +23,7 @@
     "require": {
         "phpmailer/phpmailer": "^6.9",
         "james-heinrich/getid3": "^1.9",
-        "lcobucci/jwt": "^5.3"
+        "lcobucci/jwt": "^5.3",
+        "kreait/firebase-php": "^7.13"
     }
 }
