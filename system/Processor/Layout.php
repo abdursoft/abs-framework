@@ -319,6 +319,8 @@ class Layout {
         $content = preg_replace( '/@object\(\s*(.+?)\s*\)/', '<?php return (object)($1) ?>', $content );
         $content = preg_replace( '/@if\(\s*(.+?)\s*\)/', '<?php if($1): ?>', $content );
         $content = preg_replace( '/@elseif\(\s*(.+?)\s*\)/', '<?php elseif($1): ?>', $content );
+        $content = str_replace( '@php', '<?php ', $content );
+        $content = str_replace( '@endphp', ' ?>', $content );
         $content = str_replace( '@else', '<?php else: ?>', $content );
         $content = str_replace( '@endif', '<?php endif; ?>', $content );
         $content = preg_replace( '/@foreach\(\s*(.+?)\s*\)/', '<?php foreach($1): ?>', $content );
