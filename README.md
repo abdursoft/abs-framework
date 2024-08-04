@@ -1,4 +1,4 @@
-# ABS MVC framework base on PHP OOP 1.0.6.1 
+# ABS MVC framework base on PHP OOP 1.0.7
 It's a custom php mvc framework developed by abdursoft. It's very easy to use and customizable.
 Now it's supported many features as like as laravel and blade template. 
 
