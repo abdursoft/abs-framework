@@ -182,11 +182,9 @@ php -S localhost:9000
 </pre>
 
 Routing system for the web and api
-``web routes``
-``https://domain.example/path_uri``
+``web routes <br /> https://domain.example/path_uri``
 
-``api routes``
-``https://domain.example/api/path_uri``
+``api routes <br /> https://domain.example/api/path_uri``
 
 If the project is running successfully then you can test the all routes. Now time to update the layout page and children component.
 -First create a components folder/directory in ``public/view/`` then create some files such as ``header.php`` and ``footer.php`` and ``layout.php``
