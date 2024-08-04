@@ -218,7 +218,7 @@ class Layout {
      */
     public function storage() {
         $this->pageBody = preg_replace_callback( '/\{\{\s*storage\(\s*(.+?)\s*\)\s*\}\}/i', function ( $m ) {
-            return '/storage/upload/' . trim( $this->quoteSanitizer( $m[1] ), '/' );
+            return '/storage/' . trim( $this->quoteSanitizer( $m[1] ), '/' );
         }, $this->pageBody );
         return $this;
     }

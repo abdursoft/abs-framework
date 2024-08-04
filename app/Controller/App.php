@@ -26,9 +26,7 @@ class App extends Controller{
     }
 
     public function index(){
-        // $items = Items::query()->select()->buildJoin()->leftJoin('item_category','items.item_category_id','=','item_category.item_category_id')->get();
-
-        // $this->response($items,200);
+        $this->loadStyle('/assets/css/app.css');
         $this->load->view('register');
     }
 }
