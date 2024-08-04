@@ -4,7 +4,7 @@
  *
  * @created      2023
  * @updated      2024-08-04
- * @version      1.0.6.2
+ * @version      1.0.7
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
