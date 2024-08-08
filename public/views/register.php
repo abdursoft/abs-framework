@@ -1,11 +1,13 @@
-@extend('components/layout')
-@title(layout page)
+@extends('components/layout')
+@title(Register form in layout page)
 @export(body)
 <h3>Hello text4</h3>
 <div>
     <h4>Lorem Text</h4>
     <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dignissimos explicabo, quod quibusdam qui accusantium laborum incidunt unde officiis veniam sunt placeat? Nulla illo, molestiae nam ratione numquam quod pariatur quo optio nobis porro unde eius natus quis earum quam in.</p>
 </div>
+
+{{$errors}}
 
 <form action="/action" method="post" enctype="multipart/form-data">
     @csrf

@@ -3,8 +3,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-08-04
- * @version      1.0.7
+ * @updated      2024-08-08
+ * @version      1.0.8
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -15,7 +15,7 @@
 
 namespace ABS\Framework\System\Request;
 
-use ABS\Framework\DB\DBServer;
+use ABS\Framework\DB\DB;
 
 class Request{
     /**
@@ -68,6 +68,35 @@ class Request{
         if ( array_key_exists( $key, $this->data ) ) {
             return htmlspecialchars( $this->data[$key] );
         } else {
+            return false;
+        }
+    }
+
+    /**
+     * will return the all get data
+     * only return form-data as an array
+     */
+    public function get(){
+        return $_GET;
+    }
+
+    /**
+     * will return the all post data
+     * only return form-data as an array
+     */
+    public function post(){
+        return $_POST;
+    }
+
+     /**
+     * will return true if the file exist
+     * only return boolean value
+     * @param $filename name of the file
+     */
+    public function hasFile($name){
+        if(isset($_FILES[$name])){
+            return true;
+        }else{
             return false;
         }
     }
@@ -393,9 +422,8 @@ class Request{
      */
     public function unique( $argument ) {
         $explode = explode( ',', $argument );
-        $single  = DBServer::table( $explode[0] )->select()->where( [
-            $explode[1] => $this->key,
-        ] )->last();
+        $single  = (new DB)->db->table( $explode[0] )->select()->where($explode[1],'=',$this->key,
+        )->last();
         if ( $single ) {
             $this->errors[$this->key] = "This $this->key already exist";
         }
@@ -410,9 +438,7 @@ class Request{
      */
     public function exist( $argument ) {
         $explode = explode( ',', $argument );
-        $single  = DBServer::table( $explode[0] )->select()->where( [
-            $explode[1] => $this->key,
-        ] )->last();
+        $single  = (new DB)->db->table( $explode[0] )->select()->where($explode[1] ,'=',$this->key, )->last();
         if ( !$single ) {
             $this->errors[$this->key] = "This $this->key is not exist";
         }

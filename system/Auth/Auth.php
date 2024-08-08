@@ -40,9 +40,17 @@ class Auth {
             'data' => $data,
         ];
 
-        $token = JWT::encode( $payload, JWT_SECRET, JWT_ALG );
-        Session::set( $audience, $token );
-        return $token;
+        try {
+            $token = JWT::encode( $payload, JWT_SECRET, JWT_ALG );
+            return [
+                "token" => $token,
+                "type" => "Bearer",
+                "expire" => $expire ?? JWT_EXPIRE
+            ];
+        } catch (\Throwable $th) {
+            return false;
+        }
+        
     }
 
     /**
@@ -136,19 +144,6 @@ class Auth {
         } else {
             return false;
         }
-    }
-
-    /**
-     * Generating json response
-     * @param data need a data of array
-     * @param code for api/server response status
-     * Will return a json object
-     */
-    public static function response( array $data, $code ) {
-        http_response_code( $code );
-        header( 'Content-type:application/json' );
-        echo json_encode( $data );
-        die;
     }
 
     /**

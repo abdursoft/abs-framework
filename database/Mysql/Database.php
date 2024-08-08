@@ -3,8 +3,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-08-04
- * @version      1.0.7
+ * @updated      2024-08-08
+ * @version      1.0.8
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -15,11 +15,11 @@
 
 namespace ABS\Framework\DB\Mysql;
 
-use ABS\Framework\DB\Mysql\DB;
+use ABS\Framework\DB\Mysql\MyDb;
 use PDO;
 
-class Database extends DB {
-    protected $tables, $selects, $sql, $query, $all, $where = [], $order, $limit,$wheres;
+class Database extends MyDb {
+    protected $tables, $selects, $sql = '*', $query, $all, $where = [], $order, $limit,$wheres,$joinQuery=false;
 
     public function __construct() {
         parent::__construct();
@@ -165,48 +165,6 @@ class Database extends DB {
             }
             return $query;
         }
-    }
-
-    /**
-     * set notWhere condition
-     * @param data array of the dataset $key=>$value
-     * will make a NOT condition
-     * will generate an error if the condition was failed
-     */
-    public function notWhere( array $data ) {
-        if ( !empty( $data ) && is_array( $data ) ) {
-            $this->where = " WHERE ";
-            foreach ( $data as $key => $val ) {
-                if ( !empty( $key ) && !is_int( $key ) ) {
-                    $this->where .= " NOT $key = '$val' ";
-                }
-            }
-            $this->where = trim( $this->where, " NOT" );
-        } else {
-            $this->where = ' ';
-        }
-        return $this;
-    }
-
-    /**
-     * set likeWhere condition
-     * @param data array of the dataset $key=>$value
-     * will make a LIKE condition
-     * will generate an error if the condition was failed
-     */
-    public function likeWhere( array $data ) {
-        if ( !empty( $data ) && is_array( $data ) ) {
-            $this->where = " WHERE ";
-            foreach ( $data as $key => $val ) {
-                if ( !empty( $key ) && !is_int( $key ) ) {
-                    $this->where .= " $key  LIKE '%$val%' OR ";
-                }
-            }
-            $this->where = trim( $this->where, "OR " );
-        } else {
-            $this->where = ' ';
-        }
-        return $this;
     }
 
     /**
@@ -401,8 +359,10 @@ class Database extends DB {
      * will return select SQl
      */
     public function buildJoin( ) {
-        $this->query = "SELECT $this->sql FROM $this->tables ";
-        return $this;
+        if(!$this->joinQuery){
+            $this->joinQuery = true;
+            $this->query = "SELECT $this->sql FROM $this->tables ";
+        }
     }
 
     /**
@@ -413,6 +373,7 @@ class Database extends DB {
      * will return an error if query was bad
      */
     public function join( $table, $primaryKey, $operator, $foreignKey ) {
+        $this->buildJoin();
         $this->query .= " INNER JOIN $table ON $primaryKey $operator $foreignKey";
         return $this;
     }
@@ -425,6 +386,7 @@ class Database extends DB {
      * will return an error if query was bad
      */
     public function leftJoin( $table,$primaryKey,$operator, $foreignKey ) {
+        $this->buildJoin();
         $wheres = $this->buildWhere();
         $this->query .= " LEFT JOIN $table ON $primaryKey $operator $foreignKey $wheres";
         return $this;
@@ -438,6 +400,7 @@ class Database extends DB {
      * will return an error if query was bad
      */
     public function rightJoin( $table, $primaryKey, $operator, $foreignKey ) {
+        $this->buildJoin();
         $wheres = $this->buildWhere();
         $this->query .= " RIGHT JOIN $table ON $primaryKey $operator $foreignKey $wheres";
         return $this;
@@ -451,6 +414,7 @@ class Database extends DB {
      * will return an error if query was bad
      */
     public function crossJoin( $table, $primaryKey, $operator, $foreignKey ) {
+        $this->buildJoin();
         $wheres = $this->buildWhere();
         $this->query .= " CROSS JOIN $table ON $primaryKey $operator $foreignKey $wheres";
         return $this;
@@ -466,7 +430,6 @@ class Database extends DB {
             $wheres = $this->buildWhere();
             $this->query = "SELECT $this->sql FROM $this->tables $wheres";
         }
-
         $stmt = $this->buildQuery();
         try {
             if ( $stmt->rowCount() > 0 ) {

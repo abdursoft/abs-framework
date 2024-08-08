@@ -4,8 +4,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-08-04
- * @version      1.0.7
+ * @updated      2024-08-08
+ * @version      1.0.8
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -17,6 +17,9 @@ namespace ABS\Framework\System\Processor;
 
 use ABS\Framework\App\Karnel;
 use ABS\Framework\System\Auth\Session;
+use ABS\Framework\System\Route\Route;
+
+ini_set('display_errors',0);
 
 class Layout {
     /**
@@ -75,14 +78,14 @@ class Layout {
         $this->pageBody = preg_replace_callback( '/@import\(\s*(.+?)\s*\)/i', function ( $m ) {
             if ( in_array( $m[1], $this->exportSection ) ) {
                 $index = array_search( $m[1], $this->exportSection );
-                if ( $index < count( $this->exportContent )) {
+                if ( $index < count( $this->exportContent ) ) {
                     return base64_decode( $this->exportContent[$index] );
                 }
             }
         }, $this->pageBody );
         $this->pageBody = $this->codeSanitizer( $this->pageBody );
-        $code = $this->minify( $this->pageBody );
-        return Karnel::layout()['minify'] ? $code : $this->beautified($code);
+        $code           = $this->minify( $this->pageBody );
+        return Karnel::layout()['minify'] ? $code : $this->beautified( $code );
     }
 
     /**
@@ -105,7 +108,7 @@ class Layout {
      */
     private function endExport() {
         $this->pageBody = preg_replace_callback( '/@endExport/i', function ( $c ) {
-           return "</xexport>";
+            return "</xexport>";
         }, $this->pageBody );
         return $this;
     }
@@ -121,17 +124,17 @@ class Layout {
                 $this->exportContent[] = base64_encode( $c[1] );
             }, $this->pageBody );
             return $this;
-        } catch (\Throwable $th) {
+        } catch ( \Throwable $th ) {
             echo $th->getMessage();
         }
     }
 
     /**
      * set the page title
-     * only work if @title
-     * tag initialized
+     * define the @title
+     * tag for current page
      */
-    private function pageTitle() {
+    protected function pageTitle() {
         $this->pageBody = preg_replace_callback( '/@title\(\s*(.+?)\s*\)/i', function ( $m ) {
             $this->extractData['page_title'] = $m[1];
         }, $this->pageBody );
@@ -252,13 +255,13 @@ class Layout {
      */
     private function includePage( $view ) {
         $view    = $this->quoteSanitizer( $view );
-        $content = 'Component or View <b>' . $view. '</b> not found';
+        $content = 'Component or View <b>' . $view . '</b> not found';
         for ( $i = 0; $i < count( (array) $this->fileMimes ); $i++ ) {
-            if ( file_exists( 'public/view/' . ltrim( $view, '/' ) . "." . $this->fileMimes[$i] ) ) {
-                $content = $this->absEngine( 'public/view/' . ltrim( $view, '/' ) . "." . $this->fileMimes[$i], $this->fileMimes, $this->extractData );
+            if ( file_exists( 'public/views/' . ltrim( $view, '/' ) . "." . $this->fileMimes[$i] ) ) {
+                $content = $this->absEngine( 'public/views/' . ltrim( $view, '/' ) . "." . $this->fileMimes[$i], $this->fileMimes, $this->extractData );
             }
         };
-        $content = $this->minified($content);
+        $content = $this->minified( $content );
         return $content;
     }
 
@@ -268,7 +271,7 @@ class Layout {
      * multiple time allowed
      */
     private function extend() {
-        $this->pageBody = preg_replace_callback( '/@extend\(\s*(.+?)\s*\)/i', function ( $m ) {
+        $this->pageBody = preg_replace_callback( '/@extends\(\s*(.+?)\s*\)/i', function ( $m ) {
             return $this->includePage( $m[1] );
         }, $this->pageBody );
         return $this;
@@ -279,7 +282,7 @@ class Layout {
      * only work for single quote
      */
     protected function quoteSanitizer( $quote ): string {
-        return preg_replace( '/\'/', '', $quote );
+        return preg_replace( '/\'/', '', $quote ) ?? $quote;
     }
 
     /**
@@ -293,6 +296,7 @@ class Layout {
         $this->extractData = $data;
         $this->fileMimes   = $mimes;
         extract( $this->extractData );
+        extract( Route::getFlash() );
         $content        = file_get_contents( $path );
         $content        = preg_replace( '/<!--(.|\s)*?-->/', '', $content );
         $this->pageBody = $content;
@@ -304,7 +308,7 @@ class Layout {
 
         try {
             return $this->pageBody;
-        } catch (\Throwable $th) {
+        } catch ( \Throwable $th ) {
             return $th->getMessage();
         }
     }
@@ -351,29 +355,30 @@ class Layout {
      */
     protected function minify( $code ) {
         extract( $this->extractData );
+        extract( Route::getFlash() );
 
         try {
             $minify = Karnel::layout()['minify'];
-        if ( $minify ) {
-            ob_start();
-            $search = array(
-                '/\>[^\S ]+/s',
-                '/[^\S ]+\</s',
-                '/(\s)+/s',
-                '/<!--(.|\s)*?-->/',
-                '~//[a-zA-Z0-9 ]+$~m',
-            );
-            $replace = array( '>', '<', '\\1', '' );
-            $code    = preg_replace( $search, $replace, $code );
-            eval( "?>" . $code );
-            $code = ob_get_clean();
-        } else {
-            ob_start();
-            eval( "?>" . $code );
-            $code = ob_get_clean();
-        }
-        return $code;
-        } catch (\Throwable $th) {
+            if ( $minify ) {
+                ob_start();
+                $search = array(
+                    '/\>[^\S ]+/s',
+                    '/[^\S ]+\</s',
+                    '/(\s)+/s',
+                    '/<!--(.|\s)*?-->/',
+                    '~//[a-zA-Z0-9 ]+$~m',
+                );
+                $replace = array( '>', '<', '\\1', '' );
+                $code    = preg_replace( $search, $replace, $code );
+                eval( "?>" . $code );
+                $code = ob_get_clean();
+            } else {
+                ob_start();
+                eval( "?>" . $code );
+                $code = ob_get_clean();
+            }
+            return $code;
+        } catch ( \Throwable $th ) {
             return $th->getMessage();
         }
     }
@@ -385,6 +390,7 @@ class Layout {
      */
     protected function minified( $code ) {
         extract( $this->extractData );
+        extract( Route::getFlash() );
         ob_start();
         $search = array(
             '/\>[^\S ]+/s',
@@ -397,21 +403,36 @@ class Layout {
         $code    = preg_replace( $search, $replace, $code );
         eval( "?>" . $code );
         $code = ob_get_clean();
-        return $code;       
+        return $code;
     }
+
+    
 
     /**
      * Accept html | php code
      * will return the beautified code
      */
-    protected function beautified($code){
+    protected function beautified( $code ) {
         $config = array(
-            'indent'         => true,
-            'output-xhtml'   => true,
-            'wrap'           => 200);
-     
+            'preserve-entities'   => true,
+            'hide-comments'       => true,
+            'tidy-mark'           => false,
+            'indent'              => true,
+            'indent-spaces'       => 4,
+            'new-blocklevel-tags' => 'article,header,footer,section,nav',
+            'new-inline-tags'     => 'video,audio,canvas,ruby,rt,rp',
+            'doctype'             => 'html',
+            'sort-attributes'     => 'alpha',
+            'vertical-space'      => false,
+            'output-xhtml'        => false,
+            'wrap'                => 180,
+            'wrap-attributes'     => false,
+            'break-before-br'     => false,
+            'vertical-space'      => false,
+        );
+
         $tidy = new \tidy();
-        $tidy->parseString($code, $config, 'utf8');
+        $tidy->parseString( $code, $config, 'utf8' );
         $tidy->cleanRepair();
         return $tidy;
     }

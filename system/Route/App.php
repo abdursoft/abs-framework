@@ -3,8 +3,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-08-04
- * @version      1.0.7
+ * @updated      2024-08-08
+ * @version      1.0.8
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -24,7 +24,7 @@ class App {
         $path =  trim($requestUri['path'],'/');
         $path = explode('/',$path);
         $app = $path[0] == 'api' ? 'api' : 'web';
-        include "route/".$app.".php";
+        include "routes/".$app.".php";
         Route::appMode($app);
         Route::run();
     }

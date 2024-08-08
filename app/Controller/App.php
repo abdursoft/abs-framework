@@ -16,7 +16,12 @@
 namespace ABS\Framework\App\Controller;
 
 use ABS\Framework\App\Model\Items;
+use ABS\Framework\DB\DB;
 use ABS\Framework\System\Processor\Controller;
+
+use function ABS\Framework\System\Helper\response;
+use function ABS\Framework\System\Helper\view;
+use function ABS\Framework\System\Helper\with;
 
 class App extends Controller{
 
@@ -26,7 +31,14 @@ class App extends Controller{
     }
 
     public function index(){
-        $this->loadStyle('/assets/css/app.css');
-        $this->load->view('register');
+        $model = Items::where('item_id','=',42)->get();
+        $item = (new DB())->db->table('items')->where('item_id', '=',38)->get();
+        with('errors','Hello Errors');
+        return view('register');
+    }
+
+    public function join(){
+        $model = Items::where('item_id','=',42)->leftJoin('item_category','item_category.item_category_id','=','items.item_category_id')->get();
+        response($model,200);
     }
 }

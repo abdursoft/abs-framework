@@ -1,16 +1,16 @@
-# ABS MVC framework base on PHP OOP 1.0.7
-It's a custom php mvc framework developed by abdursoft. It's very easy to use and customizable.
-Now it's supported many features as like as laravel and blade template. 
+# Abdursoft MVC framework base on PHP OOP 8.x
+It's a custom php mvc framework developed by abdursoft.com. It's very easy to use and customizable.
+Now it's supported many features as like as Laravel and blade template. 
 
-I build a template engin called ABS Template engine that integrated in this framework. It will make your code very simplified and powerful. Now you can use many thing that use on laravel such as print, echo, for loop, foreach loop, switch case and so on.
+We also build a template engin called ABS Template engine that integrated in this framework. It will make your code very simplified and powerful. Now you can use many thing that use on Laravel such as conditions, print, echo, for loop, foreach loop, switch case and so on.
 
 You can also pass the page title, meta tags, custom styles, javascript and so on. More over you can easily use master layout and child component and extend them very easily. This template engin works as OOP architecture.
 
-Before run the project, You need to enable some php extension from php.ini file.
+Before, you run the project, You need to enable some php extension from php.ini file.
 
 ``sodium, tidy, zip, xsl,pdo,mysql,pgsql``
 
-Now let's start with ABS Framework.
+Now let's start with Abdursoft Framework.
 <pre>composer create-project abdursoft/php project_name</pre>
 
 After installing the package update the ``composer.json`` file content with ``example.composer.json`` then update the composer
@@ -19,7 +19,7 @@ After installing the package update the ``composer.json`` file content with ``ex
 composer update
 </pre>
 
-If the framework successfully installed on your device then go the project/app directory. Then open the Karnel file from app\Karnel.php
+If the framework successfully installed on your device then go to the project/app directory. Then open the Karnel file from app\Karnel.php
 <pre>
 public static function csrf() {
     return [
@@ -52,7 +52,7 @@ define( 'DEFAULT_KEYWORDS', 'abs mvc developed by abdursoft' ); //Default keywor
 define( 'DATABASE_SERVER', 'mysql' ); //supported database mysql,pgsql,mongodb
 </pre>
 
-Moreover there is a lot of variable for some special functions and package just update the when you are going to use that package.
+Moreover there is a lot of variable for some special functions and package just update that when you are going to use that package|function.
 
 Lets make some route on the ``web/api`` file in the ``route/web.php`` or ``route/api.php``
 <pre>
@@ -89,6 +89,8 @@ use ABS\Framework\Core\Files\Files;
 use ABS\Framework\System\Processor\Controller;
 use ABS\Framework\System\Request\Request;
 
+use function ABS\Framework\System\Helper\view;
+
 class App extends Controller {
     public function __construct() {
         parent::__construct();
@@ -96,6 +98,10 @@ class App extends Controller {
     public function index() {
         $this-&gt;load-&gt;page_title = "Input validation";
         $this-&gt;load-&gt;view( 'form');
+    }
+
+    public function view() {
+        return-&gt;view( 'form');
     }
 
     public function layout() {
@@ -123,6 +129,8 @@ use ABS\Framework\System\Auth\Session;
 use ABS\Framework\System\Processor\Controller;
 use Exception;
 
+use function ABS\Framework\System\Helper\response;
+
 class User extends Controller {
     public function __construct() {
         parent::__construct();
@@ -146,7 +154,7 @@ class User extends Controller {
         if ( !empty( $param ) ) {
             $token = Auth::jwtAUTH( $param, 'users' );
             Session::set( 'jwt_token', $token );
-            $this-&gt;response( [
+            return response( [
                 'message'    =&gt; 'Login successful',
                 'token'      =&gt; $token,
                 'token_type' =&gt; 'Bearer',
@@ -226,7 +234,7 @@ Now lets create a child view/component in ``public/view``
 <pre>
 form.php
 
-@extend('components/layout')
+@extends('components/layout')
 @title(layout page)
 @export(body)
 &lt;h3&gt;Hello text4&lt;/h3&gt;
@@ -306,19 +314,16 @@ Others template directives
 To create a model file open the directory ``app/Model`` then make a new php file according your table name. If you have a table name ``users`` in your database you have to create the model as ``Users.php`` and the inner content should be
 
 <pre>
-class Users{
+namespace ABS\Framework\App\Model;
 
-    public static function query() {
-        return DBServer::table( self::getTable() );
-    }
+use ABS\Framework\DB\Model;
 
-    public static function getTable() {
-        $class = get_called_class();
-        $class = explode( '\\', $class );
-        return strtolower( end( $class ) );
-    }
+class Users extends Model{
+    protected static $table;
 }
 </pre>
+
+You can also change the table with ``protected static $table='name_of_the_table'``
 
 &lt;h4&gt;Whats the facility of a model&lt;/h4&gt;
 
@@ -334,7 +339,7 @@ class Users{
 <pre>
 Route::post( '/user-create', function ( ) {
     $request = new Request();
-    Users::query()->create([
+    Users::create([
         'name' => $request->input('name'),
         'email' => $request->input('email'),
         'phone' => $request->input('phone'),
@@ -351,7 +356,7 @@ Route::post( '/user-create', function ( ) {
 <pre>
 Route::post( '/user-update', function ( ) {
     $request = new Request();
-    Users::query()->where('id','=',1)->update([
+    Users::where('id','=',1)->update([
         'name' => $request->input('name'),
         'email' => $request->input('email'),
         'phone' => $request->input('phone'),
@@ -367,7 +372,7 @@ Route::post( '/user-update', function ( ) {
 <pre>
 Route::post( '/user-get-all-single', function ( ) {
     $request = new Request();
-    Users::query()->select()->where($column,$operator,$value)->last();
+    Users::where($column,$operator,$value)->last();
     echo 'User successfully retrieved';
 }, ['name'] );
 </pre>
@@ -377,7 +382,7 @@ Route::post( '/user-get-all-single', function ( ) {
 <pre>
 Route::post( '/user-get-specified', function ( ) {
     $request = new Request();
-    Users::query()->select(['name','phone'])->where($column,$operator,$value)->last();
+    Users::select(['name','phone'])->where($column,$operator,$value)->last();
     echo 'User successfully retrieved';
 }, ['name'] );
 </pre>
@@ -388,7 +393,7 @@ Route::post( '/user-get-specified', function ( ) {
 <pre>
 Route::post( '/user-get-all', function ( ) {
     $request = new Request();
-    Users::query()->select()->where($column,$operator, $value)->get();
+    Users::where($column,$operator, $value)->get();
     echo 'User successfully retrieved';
 }, ['name'] );
 </pre>
@@ -398,7 +403,17 @@ Route::post( '/user-get-all', function ( ) {
 <pre>
 Route::post( '/user-get-oder-all', function ( ) {
     $request = new Request();
-    Users::query()->select()->orderBy('id', 'DESC')->where($column,$operator,$value)->limit(3,10)->get();
+    Users::orderBy('id', 'DESC')->where($column,$operator,$value)->limit(3,10)->get();
     echo 'User successfully retrieved';
+}, ['name'] );
+</pre>
+
+&lt;h4&gt;How to fetch all data from a model with joining &lt;/h4&gt;
+
+<pre>
+Route::post( '/user-get-oder-all', function ( ) {
+    $request = new Request();
+    $all_items = Items::where('item_id','=',42)->leftJoin('item_category','item_category.id','=','items.category_id')->get();
+    echo 'Items successfully retrieved';
 }, ['name'] );
 </pre>

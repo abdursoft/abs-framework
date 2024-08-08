@@ -37,59 +37,6 @@ class Controller {
     }
 
     /**
-     * page redirect
-     * @param page URI path
-     * @route path
-     */
-    public function redirect( $path ) {
-        header( "Location: " . $path );
-    }
-
-    /**
-     * page redirect with timer
-     * @param route url
-     * @param time rest of the time before redirect
-     */
-    public function redirectTimer( $path, $second ) {
-        ?>
-        <script>
-            let r = 0;
-            const timer = setInterval(() => {
-                r++;
-                if (r == <?=$second?>) {
-                    clearInterval(timer);
-                    document.location.href = '<?=$path?>';
-                }
-            }, 1000);
-        </script>
-        <?php
-}
-
-    /**
-     * redirect previous page/url
-     * @param null no parameter required
-     */
-    public function redirectBack() {
-        ?>
-            <script>
-                history.back();
-            </script>
-        <?php
-}
-
-    /**
-     * generating json response
-     * @param data need array data to convert into json
-     * @param code set the callback response code
-     */
-    public function response( array $data, $code ) {
-        http_response_code( $code );
-        header( 'Content-type:application/json' );
-        echo json_encode( $data );
-        die;
-    }
-
-    /**
      * password validation
      * @param password string allowed for this operation
      * @verification string,number,sp_characters etc

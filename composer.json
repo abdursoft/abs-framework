@@ -3,7 +3,7 @@
     "description": "abdursoft php mvc framework. Just work with fun. It's supported multiple databases and a new template engine like blade. Now you can easily build your project with this framework. It has default jwt authentication system",
     "type": "project",
     "license": "MIT",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "authors": [
         {
             "name": "Abdur Rahim",
@@ -17,7 +17,10 @@
             "ABS\\Framework\\System\\": "system/",
             "ABS\\Framework\\DB\\": "database/",
             "ABS\\Framework\\PLUGIN\\": "plugins/"
-        }
+        },
+        "files": [
+            "system/helper/helper.php"
+        ]
     },
     "minimum-stability": "stable",
     "require": {
