@@ -3,8 +3,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-08-04
- * @version      1.0.7
+ * @updated      2024-08-08
+ * @version      1.0.8
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -34,6 +34,7 @@ class Route {
     private static $isPath      = false;
     private $parameter          = [];
     private static $param       = [];
+    private static $withFlash   = [];
     private static $methodName;
     private static $prefix = '';
 
@@ -72,6 +73,19 @@ class Route {
      * @param path url|path of the preferred page
      * @param handler name of the class and method
      */
+    public static function delete( string $path, $handler, array $parameter = null ): void {
+        if ( !empty( self::$prefix ) ) {
+            self::addHandler( self::METHOD_DELETE, self::$prefix . $path, $handler, $parameter );
+        } else {
+            self::addHandler( self::METHOD_DELETE, $path, $handler, $parameter );
+        }
+    }
+
+    /**
+     * route put method
+     * @param path url|path of the preferred page
+     * @param handler name of the class and method
+     */
     public static function put( string $path, $handler ): void {
         if ( !empty( self::$prefix ) ) {
             self::addHandler( self::METHOD_PUT, self::$prefix . $path, $handler );
@@ -81,18 +95,51 @@ class Route {
     }
 
     /**
-     * route put method
+     * route patch method
      * @param path url|path of the preferred page
      * @param handler name of the class and method
      */
-    public static function delete( string $path, $handler, array $parameter = null ): void {
+    public static function patch( string $path, $handler ): void {
         if ( !empty( self::$prefix ) ) {
-            self::addHandler( self::METHOD_DELETE, self::$prefix . $path, $handler, $parameter );
+            self::addHandler( self::METHOD_PUT, self::$prefix . $path, $handler );
         } else {
-            self::addHandler( self::METHOD_DELETE, $path, $handler, $parameter );
+            self::addHandler( self::METHOD_PUT, $path, $handler );
         }
     }
 
+
+    /**
+     * route options method
+     * @param path url|path of the preferred page
+     * @param handler name of the class and method
+     */
+    public static function options( string $path, $handler ): void {
+        if ( !empty( self::$prefix ) ) {
+            self::addHandler( self::METHOD_PUT, self::$prefix . $path, $handler );
+        } else {
+            self::addHandler( self::METHOD_PUT, $path, $handler );
+        }
+    }
+
+    /**
+     * storing flash message
+     * for the next request
+     * @param $name of the session
+     * @param $value of the message
+     */
+     public static function with($name,$value){
+        self::$withFlash[$name] = $value;
+     }
+
+
+     /**
+      * get static flash message
+      * for the next routes
+      */
+
+    public static function getFlash(){
+        return self::$withFlash;
+    }
 
     /**
      * route middleware method

@@ -3,8 +3,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-08-04
- * @version      1.0.7
+ * @updated      2024-08-08
+ * @version      1.0.8
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -15,7 +15,7 @@
 
 namespace ABS\Framework\System\Validation;
 
-use ABS\Framework\DB\DBServer;
+use ABS\Framework\DB\DB;
 
 class Validation{
 
@@ -203,15 +203,15 @@ class Validation{
     }
 
     /**
-     * checking the unquie value
+     * checking the unique value
      * @param table table|model|collection name of the database
      * @param key name|key of the table|model|collection
      * will generate an error message if the data is not valid
      */
-    public function unique( $table, $key ) {
-        $single = DBServer::table( $table )->select()->where( [
-            $key => $this->input,
-        ] )->last();
+    public function unique( $argument ) {
+        $explode = explode( ',', $argument );
+        $single  = (new DB)->db->table( $explode[0] )->select()->where($explode[1],'=',$this->key,
+        )->last();
         if ( $single ) {
             $this->error[$this->key] = "This $this->key already exist";
         }
@@ -224,10 +224,9 @@ class Validation{
      * @param key name|key of the table|model|collection
      * will generate an error message if the data is not valid
      */
-    public function exist( $table, $key ) {
-        $single = DBServer::table( $table )->select()->where( [
-            $key => $this->input,
-        ] )->last();
+    public function exist( $argument ) {
+        $explode = explode( ',', $argument );
+        $single  = (new DB)->db->table( $explode[0] )->select()->where($explode[1] ,'=',$this->key, )->last();
         if ( !$single ) {
             $this->error[$this->key] = "This $this->key is not exist";
         }

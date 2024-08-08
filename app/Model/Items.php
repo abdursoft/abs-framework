@@ -15,25 +15,8 @@
 
 namespace ABS\Framework\App\Model;
 
-use ABS\Framework\DB\DBServer;
+use ABS\Framework\DB\Model;
 
-class Items{
-    
-    /**
-     * declare the database connection
-     * set the query table|collection
-     */
-    public static function query() {
-        return DBServer::table( self::getTable() );
-    }
-
-    /**
-     * generating the table|collection from class
-     * will return the table name according the class
-     */
-    public static function getTable() {
-        $class = get_called_class();
-        $class = explode( '\\', $class );
-        return strtolower( end( $class ) );
-    }
+class Items extends Model{
+    protected static $table = 'items';
 }

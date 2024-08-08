@@ -3,8 +3,8 @@
  * ABS PHP Framework
  *
  * @created      2023
- * @updated      2024-08-04
- * @version      1.0.7
+ * @updated      2024-08-08
+ * @version      1.0.8
  * @author       abdursoft <support@abdursoft.com>
  * @authorURI    https://abdursoft.com/author
  * @copyright    2024 abdursoft
@@ -17,3 +17,4 @@ use ABS\Framework\App\Controller\App;
 use ABS\Framework\System\Route\Route;
 
 Route::get( '', [App::class, 'index'] );
+Route::get( '/join', [App::class, 'join'] );

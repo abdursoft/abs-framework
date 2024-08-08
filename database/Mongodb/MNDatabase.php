@@ -90,7 +90,7 @@ class MNDatabase extends Mongo {
      * will make a AND condition
      * will generate an error if the condition was failed
      */
-    public function where( array $data ) {
+    public function where( string|array $data ) {
         if ( !empty( $data ) && is_array( $data ) ) {
             $this->where = $data;
         } else {
