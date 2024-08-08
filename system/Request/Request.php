@@ -75,17 +75,27 @@ class Request{
     /**
      * will return the all get data
      * only return form-data as an array
+     * @param $key will return the specific key
      */
-    public function get(){
-        return $_GET;
+    public function get($key=null){
+        if($key){
+            return $_GET[$key] ?? false;
+        }else{
+            return $_GET;
+        }
     }
 
     /**
      * will return the all post data
      * only return form-data as an array
+     * @param $key will return the specific key
      */
-    public function post(){
-        return $_POST;
+    public function post($key=null){
+        if($key){
+            return $_POST[$key] ?? false;
+        }else{
+            return $_POST;
+        }
     }
 
      /**
@@ -202,7 +212,7 @@ class Request{
                 $this->checkError( $new[0], $new[1] ?? null );
             }
         }
-        return $this->end();
+        return $this;
     }
 
     /**
@@ -479,6 +489,30 @@ class Request{
     private function end() {
         if ( empty( $this->errors ) ) {
             return true;
+        } else {
+            return $this->errors;
+        }
+    }
+
+    /**
+     * will return true|false
+     * if errors not empty return 1|true
+     */
+    public function fails(){
+        if ( empty( $this->errors ) ) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * will return errors|false
+     * if errors not empty return false|data
+     */
+    public function errors(){
+        if ( empty( $this->errors ) ) {
+            return false;
         } else {
             return $this->errors;
         }
